@@ -9,7 +9,6 @@ const navLinks = [
 	{ label: 'Katalog', href: '/catalog' },
 	{ label: 'Shop', href: '/shop' },
 	{ label: 'Chegirmalar', href: '/discounts' },
-	{ label: 'Biz haqimizda', href: '/about' },
 ]
 
 const Navbar = () => {

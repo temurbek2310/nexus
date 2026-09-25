@@ -43,7 +43,7 @@ const Footer = () => {
 							Do'kon
 						</h3>
 						<Link
-							href='/browse'
+							href='/catalog'
 							className='text-gray-500 hover:text-black transition-colors'
 						>
 							Katalog
@@ -55,7 +55,7 @@ const Footer = () => {
 							Yangi kelganlar
 						</Link>
 						<Link
-							href='#'
+							href='discounts'
 							className='text-gray-500 hover:text-black transition-colors'
 						>
 							Chegirmalar
@@ -91,10 +91,16 @@ const Footer = () => {
 				<div className='flex flex-col md:flex-row items-center justify-between pt-8 border-t border-gray-200 font-montserrat text-sm text-gray-500'>
 					<p>© {year} NEXUS Inc. Barcha huquqlar himoyalangan.</p>
 					<div className='flex gap-6 mt-4 md:mt-0'>
-						<Link href='#' className='hover:text-black transition-colors'>
+						<Link
+							href={'/privacy'}
+							className='hover:text-black transition-colors'
+						>
 							Maxfiylik siyosati
 						</Link>
-						<Link href='#' className='hover:text-black transition-colors'>
+						<Link
+							href={'/terms'}
+							className='hover:text-black transition-colors'
+						>
 							Shartlar
 						</Link>
 					</div>
