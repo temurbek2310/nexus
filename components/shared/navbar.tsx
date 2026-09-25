@@ -6,7 +6,7 @@ import Logo from './logo'
 
 // Linklar ro'yxatini massivda saqlash kodni toza qiladi
 const navLinks = [
-	{ label: 'Katalog', href: '/browse' },
+	{ label: 'Katalog', href: '/catalog' },
 	{ label: 'Shop', href: '/shop' },
 	{ label: 'Chegirmalar', href: '/discounts' },
 	{ label: 'Biz haqimizda', href: '/about' },

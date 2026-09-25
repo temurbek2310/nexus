@@ -103,7 +103,7 @@ const CategoryPage = () => {
 						size='sm'
 						className='mb-8 font-montserrat text-gray-500 hover:text-black rounded-full border border-gray-200 bg-white shadow-sm'
 					>
-						<Link href='/browse'>
+						<Link href='/catalog'>
 							<ArrowLeft className='size-4 mr-2' />
 							Katalogga qaytish
 						</Link>

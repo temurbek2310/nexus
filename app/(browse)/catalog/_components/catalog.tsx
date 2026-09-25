@@ -166,7 +166,7 @@ const Catalog = () => {
 														{category.description}
 													</p>
 													<Link
-														href={`#`}
+														href={`/category/${category.title.toLowerCase()}`}
 														className={cn(
 															'relative size-12 shrink-0 rounded-full flex items-center justify-center transition-all duration-500 z-30 group/btn',
 															isDark
