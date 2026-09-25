@@ -67,19 +67,19 @@ const Footer = () => {
 							Yordam
 						</h3>
 						<Link
-							href='#'
+							href='/faq'
 							className='text-gray-500 hover:text-black transition-colors'
 						>
 							FAQ
 						</Link>
 						<Link
-							href='#'
+							href='/shipping'
 							className='text-gray-500 hover:text-black transition-colors'
 						>
 							Yetkazib berish
 						</Link>
 						<Link
-							href='#'
+							href='/contact'
 							className='text-gray-500 hover:text-black transition-colors'
 						>
 							Aloqa
