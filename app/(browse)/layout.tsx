@@ -29,7 +29,7 @@ const BrowseLayout = ({ children }: { children: ReactNode }) => {
 			<Navbar />
 
 			{/* Asosiy kontent. Vercel odatda max-w-7xl (1280px) ishlatadi */}
-			<main className='flex-grow w-full mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16'>
+			<main className='grow w-full mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16'>
 				{children}
 			</main>
 
