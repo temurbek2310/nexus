@@ -65,7 +65,7 @@ const Categories = () => {
 					</div>
 
 					<Link
-						href='/browse'
+						href='/catalog'
 						className='group flex items-center gap-2 font-montserrat text-sm font-medium text-black hover:text-gray-600 transition-colors'
 					>
 						Barcha kategoriyalar
