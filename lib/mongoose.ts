@@ -7,13 +7,11 @@ interface MongooseConnection {
 	promise: Promise<Mongoose> | null
 }
 
-// TS uchun global obyektni kengaytiramiz (any ishlatmaslik uchun)
 declare global {
 	// eslint-disable-next-line no-var
 	var mongoose: MongooseConnection | undefined
 }
 
-// MUAMMO HAL QILINDI: let o'rniga const ishlatildi
 const cached: MongooseConnection = global.mongoose || {
 	conn: null,
 	promise: null,

@@ -3,7 +3,6 @@
 import User from '@/lib/models/user.model'
 import { connectToDatabase } from '@/lib/mongoose'
 
-// 1. Yangi foydalanuvchi uchun TypeScript interfeysi
 export type CreateUserParams = {
 	clerkId: string
 	email: string
@@ -13,7 +12,6 @@ export type CreateUserParams = {
 	photo: string
 }
 
-// 2. Foydalanuvchini yangilash uchun TypeScript interfeysi
 export type UpdateUserParams = {
 	username: string | null
 	firstName: string | null
@@ -51,14 +49,18 @@ export async function updateUser(clerkId: string, user: UpdateUserParams) {
 	}
 }
 
-// Foydalanuvchini o'chirish
+// Foydalanuvchini o'chirish (Tuzatildi: Agar topilmasa xato tashlamaydi)
 export async function deleteUser(clerkId: string) {
 	try {
 		await connectToDatabase()
 		const userToDelete = await User.findOne({ clerkId })
 
 		if (!userToDelete) {
-			throw new Error('Foydalanuvchi topilmadi')
+			console.log(
+				"O'chiriladigan foydalanuvchi bazadan topilmadi (allaqachon o'chirilgan):",
+				clerkId,
+			)
+			return null
 		}
 
 		const deletedUser = await User.findByIdAndDelete(userToDelete._id)

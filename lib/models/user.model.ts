@@ -15,6 +15,7 @@ const UserSchema = new Schema(
 		username: {
 			type: String,
 			unique: true,
+			sparse: true, // Unique bo'lsa-da, null/undefined qiymatlarda xato bermasligi uchun
 		},
 		firstName: {
 			type: String,
@@ -30,7 +31,6 @@ const UserSchema = new Schema(
 			enum: ['user', 'admin'],
 			default: 'user',
 		},
-		// E-commerce uchun qo'shimcha maydonlar (Kelajakda kerak bo'ladi)
 		savedProducts: [
 			{
 				type: Schema.Types.ObjectId,
@@ -39,11 +39,10 @@ const UserSchema = new Schema(
 		],
 	},
 	{
-		timestamps: true, // createdAt va updatedAt avtomatik qo'shiladi
+		timestamps: true,
 	},
 )
 
-// Agar model oldin yaratilgan bo'lsa o'shani ishlatadi, bo'lmasa yangi yaratadi (Next.js xatosini oldini olish uchun)
 const User = models.User || model('User', UserSchema)
 
 export default User

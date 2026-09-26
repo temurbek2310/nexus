@@ -5,16 +5,14 @@ import { NextResponse } from 'next/server'
 import { Webhook } from 'svix'
 
 export async function POST(req: Request) {
-	// QOPQON: Vercel so'rovni qabul qilishi bilan shu yozuv logga chiqishi kerak!
 	console.log("🔥🔥🔥 DIQQAT: CLERK WEBHOOK ISHGA TUSHDI! SO'ROV KELDI! 🔥🔥🔥")
-	// Clerk Dashboard'dan olinadigan Webhook Secret
+
 	const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET
 
 	if (!WEBHOOK_SECRET) {
-		throw new Error('WEBHOOK_SECRET .env.local faylida topilmadi')
+		throw new Error('WEBHOOK_SECRET .env faylida topilmadi')
 	}
 
-	// Svix yordamida headerlarni olish
 	const headerPayload = await headers()
 	const svix_id = headerPayload.get('svix-id')
 	const svix_timestamp = headerPayload.get('svix-timestamp')
@@ -26,7 +24,6 @@ export async function POST(req: Request) {
 		})
 	}
 
-	// Body ma'lumotlarini olish
 	const payload = await req.json()
 	const body = JSON.stringify(payload)
 
@@ -34,7 +31,6 @@ export async function POST(req: Request) {
 
 	let evt: WebhookEvent
 
-	// Signature (Imzo) orqali xavfsizlikni tekshirish
 	try {
 		evt = wh.verify(body, {
 			'svix-id': svix_id,
@@ -46,7 +42,6 @@ export async function POST(req: Request) {
 		return new Response('Xatolik yuz berdi', { status: 400 })
 	}
 
-	// Event Turi (Yaratish, Yangilash, O'chirish)
 	const eventType = evt.type
 
 	// 1. FOYDALANUVCHI YARATILGANDA
@@ -57,10 +52,10 @@ export async function POST(req: Request) {
 		const user = {
 			clerkId: id,
 			email: email_addresses[0].email_address,
-			username: username || first_name,
-			firstName: first_name,
-			lastName: last_name,
-			photo: image_url,
+			username: username || first_name || `user_${id.slice(-6)}`,
+			firstName: first_name || '',
+			lastName: last_name || '',
+			photo: image_url || '',
 		}
 
 		const newUser = await createUser(user)
@@ -75,10 +70,10 @@ export async function POST(req: Request) {
 		const { id, image_url, first_name, last_name, username } = evt.data
 
 		const user = {
-			firstName: first_name,
-			lastName: last_name,
-			username: username || first_name,
-			photo: image_url,
+			firstName: first_name || '',
+			lastName: last_name || '',
+			username: username || first_name || `user_${id.slice(-6)}`,
+			photo: image_url || '',
 		}
 
 		const updatedUser = await updateUser(id, user)
