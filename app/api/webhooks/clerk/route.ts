@@ -5,6 +5,8 @@ import { NextResponse } from 'next/server'
 import { Webhook } from 'svix'
 
 export async function POST(req: Request) {
+	// QOPQON: Vercel so'rovni qabul qilishi bilan shu yozuv logga chiqishi kerak!
+	console.log("🔥🔥🔥 DIQQAT: CLERK WEBHOOK ISHGA TUSHDI! SO'ROV KELDI! 🔥🔥🔥")
 	// Clerk Dashboard'dan olinadigan Webhook Secret
 	const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET
 
