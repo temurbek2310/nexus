@@ -2,11 +2,13 @@
 
 import { cn } from '@/lib/utils'
 import { useCartStore } from '@/store/useCartStore'
+import { useUser } from '@clerk/nextjs'
 import { Search, X } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import Logo from './logo'
+import { UserMenu } from './user-menu'
 
 const navLinks = [
 	{ label: 'Katalog', href: '/catalog' },
@@ -21,6 +23,9 @@ const Navbar = () => {
 	const cartItems = useCartStore(state => state.items)
 	const [mounted, setMounted] = useState(false)
 
+	// ================= CLERK HOOK'I =================
+	const { isLoaded, isSignedIn } = useUser()
+
 	// ================= QIDIRUV (SEARCH) STATE LARI =================
 	const [isSearchOpen, setIsSearchOpen] = useState(false)
 	const [searchQuery, setSearchQuery] = useState('')
@@ -33,14 +38,12 @@ const Navbar = () => {
 
 	const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0)
 
-	// Qidiruv maydoni ochilganda inputga avtomatik fokus qaratish
 	useEffect(() => {
 		if (isSearchOpen && inputRef.current) {
 			inputRef.current.focus()
 		}
 	}, [isSearchOpen])
 
-	// Debounce (Kutish) logikasi: Yozish to'xtagandan 700ms o'tib redirect qiladi
 	useEffect(() => {
 		if (initialRender.current) {
 			initialRender.current = false
@@ -48,7 +51,6 @@ const Navbar = () => {
 		}
 
 		const timer = setTimeout(() => {
-			// Faqatgina nimadir yozilgan bo'lsa va input ochiq bo'lsa redirect qilamiz
 			if (isSearchOpen && searchQuery.trim().length > 0) {
 				router.push(`/shop?q=${encodeURIComponent(searchQuery)}`)
 			}
@@ -57,14 +59,12 @@ const Navbar = () => {
 		return () => clearTimeout(timer)
 	}, [searchQuery, isSearchOpen, router])
 
-	// Enter bosilganda kutib o'tirmasdan darhol qidirish
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === 'Enter' && searchQuery.trim().length > 0) {
 			router.push(`/shop?q=${encodeURIComponent(searchQuery)}`)
 		}
 	}
 
-	// Qidiruvni yopish va tozalash
 	const closeSearch = () => {
 		setIsSearchOpen(false)
 		setSearchQuery('')
@@ -107,7 +107,6 @@ const Navbar = () => {
 								: 'w-9 rounded-full bg-transparent border border-transparent hover:bg-gray-100',
 						)}
 					>
-						{/* Search Ikonka */}
 						<button
 							onClick={() => !isSearchOpen && setIsSearchOpen(true)}
 							className={cn(
@@ -120,7 +119,6 @@ const Navbar = () => {
 							<Search className='size-4.5' />
 						</button>
 
-						{/* Input Maydoni */}
 						<input
 							ref={inputRef}
 							value={searchQuery}
@@ -133,7 +131,6 @@ const Navbar = () => {
 							)}
 						/>
 
-						{/* Yopish (X) Ikonka */}
 						{isSearchOpen && (
 							<button onClick={closeSearch} className='shrink-0 ml-1 group p-1'>
 								<X className='size-4 text-gray-400 group-hover:text-black transition-colors' />
@@ -141,16 +138,39 @@ const Navbar = () => {
 						)}
 					</div>
 
-					<button className='text-sm font-medium text-gray-500 hover:text-black transition-colors hidden sm:block shrink-0'>
-						Kirish
-					</button>
-
+					{/* ================= SAVAT (O'rtada) ================= */}
 					<Link
 						href='/cart'
-						className='h-9 px-4 flex items-center justify-center rounded-md bg-black text-white text-sm font-medium hover:bg-gray-800 transition-colors shrink-0'
+						className='h-9 px-4 flex items-center justify-center rounded-md bg-black text-white text-sm font-medium hover:bg-gray-800 transition-colors shrink-0 ml-1'
 					>
 						Savat ({mounted ? cartCount : 0})
 					</Link>
+
+					{/* ================= CLERK AUTH QISMI (Eng o'ngda) ================= */}
+
+					{/* Yuklanayotganda "Skeleton" */}
+					{!isLoaded ? (
+						<div className='w-10 h-10 ml-2 bg-gray-100 rounded-full animate-pulse hidden sm:block'></div>
+					) : (
+						<>
+							{/* Tizimga Kirmaganlar uchun */}
+							{!isSignedIn && (
+								<Link
+									href='/sign-in'
+									className='ml-2 text-sm font-montserrat font-medium text-gray-500 hover:text-black transition-colors hidden sm:block shrink-0'
+								>
+									Kirish
+								</Link>
+							)}
+
+							{/* Tizimga Kirganlar uchun (Avatar) */}
+							{isSignedIn && (
+								<div className='ml-2'>
+									<UserMenu />
+								</div>
+							)}
+						</>
+					)}
 				</div>
 			</div>
 		</header>
