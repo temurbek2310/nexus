@@ -21,6 +21,7 @@ import {
 import { cn } from '@/lib/utils'
 import { Search, ShoppingCart, SlidersHorizontal, X } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useMemo, useState } from 'react'
 
 // Kategoriya ma'lumotlari
@@ -642,7 +643,8 @@ const ShopPage = () => {
 										)
 
 										return (
-											<div
+											<Link
+												href={`/shop/${product.id}`}
 												key={product.id}
 												className='group relative flex flex-col rounded-[2rem] bg-white border border-gray-200 overflow-hidden hover:border-black/20 hover:shadow-xl hover:shadow-black/5 transition-all duration-500 h-[400px]'
 											>
@@ -690,7 +692,7 @@ const ShopPage = () => {
 														<ShoppingCart className='size-4 transition-transform duration-300 group-hover:scale-110' />
 													</Button>
 												</div>
-											</div>
+											</Link>
 										)
 									})}
 								</div>
