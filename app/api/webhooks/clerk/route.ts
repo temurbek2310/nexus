@@ -6,7 +6,7 @@ import { Webhook } from 'svix'
 
 export async function POST(req: Request) {
 	// Clerk Dashboard'dan olinadigan Webhook Secret
-	const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET
+	const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET
 
 	if (!WEBHOOK_SECRET) {
 		throw new Error('WEBHOOK_SECRET .env.local faylida topilmadi')
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
 			'svix-id': svix_id,
 			'svix-timestamp': svix_timestamp,
 			'svix-signature': svix_signature,
-		}) as WebhookEvent
+		}) as unknown as WebhookEvent
 	} catch (err) {
 		console.error('Webhook tasdiqlashda xatolik:', err)
 		return new Response('Xatolik yuz berdi', { status: 400 })
