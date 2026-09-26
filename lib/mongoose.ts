@@ -7,17 +7,26 @@ interface MongooseConnection {
 	promise: Promise<Mongoose> | null
 }
 
-// Global obyektda mongoose ulanishini saqlaymiz (Next.js qayta yuklanganda yangi ulanish ochmasligi uchun)
-let cached: MongooseConnection = (global as any).mongoose
+// TS uchun global obyektni kengaytiramiz (any ishlatmaslik uchun)
+declare global {
+	// eslint-disable-next-line no-var
+	var mongoose: MongooseConnection | undefined
+}
 
-if (!cached) {
-	cached = (global as any).mongoose = { conn: null, promise: null }
+// MUAMMO HAL QILINDI: let o'rniga const ishlatildi
+const cached: MongooseConnection = global.mongoose || {
+	conn: null,
+	promise: null,
+}
+
+if (!global.mongoose) {
+	global.mongoose = cached
 }
 
 export const connectToDatabase = async () => {
 	if (cached.conn) return cached.conn
 
-	if (!MONGODB_URI) throw new Error('MONGODB_URI topilmadi')
+	if (!MONGODB_URI) throw new Error('MONGODB_URI .env faylida topilmadi')
 
 	cached.promise =
 		cached.promise ||
