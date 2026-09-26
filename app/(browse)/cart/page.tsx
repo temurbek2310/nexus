@@ -14,75 +14,40 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
-// Boshlang'ich Mock Datalar
-const initialCartItems = [
-	{
-		id: '1',
-		brand: 'DJI',
-		name: 'Mavic 3 Pro',
-		price: 1999,
-		image: '/powercore.png', // O'zingizdagi rasm nomiga almashtiring
-		quantity: 1,
-	},
-	{
-		id: '2',
-		brand: 'SONY',
-		name: 'WH-1000XM5',
-		price: 349,
-		image: '/bottle.png',
-		quantity: 2,
-	},
-	{
-		id: '5',
-		brand: 'VOLTIA',
-		name: 'PowerCore 65W',
-		price: 45,
-		image: '/pocketpower.png',
-		quantity: 1,
-	},
-]
+// Zustand store
+import { useCartStore } from '@/store/useCartStore'
 
 export default function CartPage() {
-	const [cartItems, setCartItems] = useState(initialCartItems)
 	const [promoCode, setPromoCode] = useState('')
+	const [mounted, setMounted] = useState(() => typeof window !== 'undefined')
 
-	// Miqdorni o'zgartirish funksiyasi
-	const updateQuantity = (id: string, delta: number) => {
-		setCartItems(items =>
-			items.map(item => {
-				if (item.id === id) {
-					const newQuantity = Math.max(1, item.quantity + delta) // Minimal 1 ta bo'lishi kerak
-					return { ...item, quantity: newQuantity }
-				}
-				return item
-			}),
-		)
-	}
+	// Store'dan kerakli ma'lumot va logikalarni chaqirib olamiz
+	const cartItems = useCartStore(state => state.items)
+	const updateQuantity = useCartStore(state => state.updateQuantity)
+	const removeItem = useCartStore(state => state.removeItem)
+	const getTotalPrice = useCartStore(state => state.getTotalPrice)
 
-	// Mahsulotni savatdan o'chirish funksiyasi
-	const removeItem = (id: string) => {
-		setCartItems(items => items.filter(item => item.id !== id))
-	}
-
-	// Hisob-kitoblar (useMemo orqali optimizatsiya qilingan)
+	// Hisob-kitoblar (Soliq va Yetkazib berish)
 	const { subtotal, tax, total } = useMemo(() => {
-		const subtotal = cartItems.reduce(
-			(acc, item) => acc + item.price * item.quantity,
-			0,
-		)
+		const subtotal = getTotalPrice()
 		const tax = subtotal * 0.12 // 12% QQS (Soliq)
 		const shipping = subtotal > 0 ? 15 : 0 // Agar savatda narsa bo'lsa, yetkazib berish $15
 		const total = subtotal + tax + shipping
 
 		return { subtotal, tax, total }
-	}, [cartItems])
+	}, [getTotalPrice, cartItems]) // cartItems o'zgarganda qayta hisoblaydi
+
+	// SSR paytida bo'sh sahifa ko'rsatib turish (Hydration mismatch bo'lmasligi uchun)
+	if (!mounted) {
+		return <div className='min-h-screen bg-[#FAFAFA]' />
+	}
 
 	// Savat bo'sh bo'lgan holat (Empty State)
 	if (cartItems.length === 0) {
 		return (
-			<div className='bg-[#FAFAFA] flex flex-col items-center justify-center pt-32 pb-24 px-6 text-center'>
+			<div className='bg-[#FAFAFA] min-h-screen flex flex-col items-center justify-center pt-32 pb-24 px-6 text-center'>
 				<div className='w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6'>
 					<ShoppingBag className='w-10 h-10 text-gray-400' />
 				</div>
@@ -125,7 +90,7 @@ export default function CartPage() {
 						Savat
 					</h1>
 					<p className='font-montserrat text-gray-500 mt-2'>
-						Jami {cartItems.length} ta mahsulot
+						Jami {cartItems.length} xil mahsulot
 					</p>
 				</div>
 

@@ -7,6 +7,7 @@ import {
 	ArrowLeft,
 	Battery,
 	Camera,
+	Check,
 	CreditCard,
 	Minus,
 	Plus,
@@ -19,6 +20,9 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
+
+// Zustand store'ni import qilamiz
+import { useCartStore } from '@/store/useCartStore'
 
 // Mock Mahsulot
 const product = {
@@ -48,12 +52,30 @@ export default function ProductDetailsPage() {
 	const [activeImage, setActiveImage] = useState(0)
 	const [quantity, setQuantity] = useState(1)
 
+	// Savatga qo'shilganini vizual bildirish uchun
+	const [isAdded, setIsAdded] = useState(false)
+
+	// Store'dan addItem funksiyasini chaqirib olamiz
+	const addItem = useCartStore(state => state.addItem)
+
 	const discountPercent = Math.round(
 		((product.oldPrice - product.price) / product.oldPrice) * 100,
 	)
 
 	const handleAddToCart = () => {
-		console.log(`Savatga qo'shildi: ${product.name}, Miqdori: ${quantity}`)
+		// Store'ga mahsulot va foydalanuvchi tanlagan miqdorni yuboramiz
+		addItem({
+			id: product.id,
+			brand: product.brand,
+			name: product.name,
+			price: product.price,
+			image: product.images[0], // Asosiy rasmni yuboramiz
+			quantity: quantity, // Tanlangan miqdor
+		})
+
+		// Premium UX: Tugmani 2 soniyaga "Check" belgisiga o'zgartirish
+		setIsAdded(true)
+		setTimeout(() => setIsAdded(false), 2000)
 	}
 
 	return (
@@ -169,9 +191,8 @@ export default function ProductDetailsPage() {
 
 						<div className='w-full h-px bg-gray-200 mb-10'></div>
 
-						{/* ================= XARID QILISH QISMI (MUAMMO HAL QILINDI) ================= */}
+						{/* ================= XARID QILISH QISMI ================= */}
 						<div className='flex flex-col sm:flex-row items-center gap-4 mb-8 w-full'>
-							{/* Miqdor tanlagich - Qat'iy shrink-0 bilan */}
 							<div className='flex items-center justify-between w-full sm:w-36 h-14 bg-white border border-gray-200 rounded-2xl px-2 shrink-0'>
 								<Button
 									variant='ghost'
@@ -181,7 +202,6 @@ export default function ProductDetailsPage() {
 								>
 									<Minus className='w-4 h-4' />
 								</Button>
-								{/* Raqam turg'unligi uchun w-8 va text-center */}
 								<span className='font-space-grotesk font-bold text-lg w-8 text-center select-none'>
 									{quantity}
 								</span>
@@ -195,17 +215,30 @@ export default function ProductDetailsPage() {
 								</Button>
 							</div>
 
-							{/* Add to Cart Tugmasi - Qolgan joyni qoplashi uchun flex-1 */}
+							{/* Add to Cart Tugmasi (IsAdded logikasi bilan) */}
 							<Button
 								onClick={handleAddToCart}
-								className='flex-1 w-full h-14 bg-black text-white hover:bg-gray-800 rounded-2xl font-montserrat text-base font-semibold transition-all duration-300 shadow-xl shadow-black/10 group'
+								className={cn(
+									'flex-1 w-full h-14 rounded-2xl font-montserrat text-base font-semibold transition-all duration-300 shadow-xl group',
+									isAdded
+										? 'bg-green-500 hover:bg-green-600 text-white shadow-green-500/20'
+										: 'bg-black text-white hover:bg-gray-800 shadow-black/10',
+								)}
 							>
-								<ShoppingCart className='w-5 h-5 mr-3 transition-transform duration-300 group-hover:-rotate-12' />
-								Savatga qo'shish
+								{isAdded ? (
+									<>
+										<Check className='w-5 h-5 mr-3 animate-in zoom-in' />
+										Qo'shildi
+									</>
+								) : (
+									<>
+										<ShoppingCart className='w-5 h-5 mr-3 transition-transform duration-300 group-hover:-rotate-12' />
+										Savatga qo'shish
+									</>
+								)}
 							</Button>
 						</div>
 
-						{/* Tezkor Xarid */}
 						<Button
 							variant='outline'
 							className='w-full h-14 bg-white border-2 border-black text-black hover:bg-gray-50 rounded-2xl font-montserrat text-base font-bold transition-all mb-10'

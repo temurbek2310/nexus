@@ -11,9 +11,10 @@ import {
 import Autoplay from 'embla-carousel-autoplay'
 import { ArrowRight, Tag, Timer } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 import * as React from 'react'
+// useRef olib tashlandi, o'rniga faqat useState ishlatamiz
 
-// --- MAXSUS CHEGIRMALAR DATASI ---
 const discountCampaigns = [
 	{
 		id: 1,
@@ -24,6 +25,7 @@ const discountCampaigns = [
 		category: 'Drones',
 		image: '/drones.png',
 		color: 'from-orange-500 to-red-500',
+		link: '/discounts',
 	},
 	{
 		id: 2,
@@ -34,6 +36,7 @@ const discountCampaigns = [
 		category: 'Audio',
 		image: '/audio.png',
 		color: 'from-blue-500 to-cyan-500',
+		link: '/discounts',
 	},
 	{
 		id: 3,
@@ -44,6 +47,7 @@ const discountCampaigns = [
 		category: 'Stabilizers',
 		image: '/stabilizers.png',
 		color: 'from-emerald-500 to-green-500',
+		link: '/discounts',
 	},
 ]
 
@@ -51,9 +55,10 @@ export default function Hero() {
 	const [api, setApi] = React.useState<CarouselApi>()
 	const [current, setCurrent] = React.useState(0)
 
-	const plugin = React.useMemo(
-		() => Autoplay({ delay: 5000, stopOnInteraction: true }),
-		[],
+	// ================= MUAMMO HAL QILINDI =================
+	// useRef o'rniga lazy useState ishlatildi. Bu React 19 da xato bermaydi va qayta render bo'lganda yo'qolib qolmaydi.
+	const [plugin] = React.useState(() =>
+		Autoplay({ delay: 5000, stopOnInteraction: true }),
 	)
 
 	React.useEffect(() => {
@@ -70,9 +75,8 @@ export default function Hero() {
 
 	return (
 		<section className='pt-12 pb-16 border-b border-border overflow-hidden relative'>
-			{/* Navbar bilan solishtirganda ikki yondan otib turishi uchun w-[96%] lg:w-[98%] ishlatildi */}
 			<div className='w-[96%] lg:w-[98%] max-w-[1920px] mx-auto relative z-10'>
-				{/* Sarlavha qismi (Matnlar chekkaga yopishmasligi uchun px-4 md:px-8 berildi) */}
+				{/* Sarlavha qismi */}
 				<div className='flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 px-4 md:px-8'>
 					<div>
 						<div className='flex items-center space-x-2 mb-4'>
@@ -104,17 +108,16 @@ export default function Hero() {
 				<Carousel
 					setApi={setApi}
 					opts={{ align: 'start', loop: true }}
-					plugins={[plugin]}
+					plugins={[plugin]} // .current olib tashlandi, bevosita plugin o'zi uzatildi
 					className='w-full relative'
-					onMouseEnter={plugin.stop}
-					onMouseLeave={plugin.reset}
+					onMouseEnter={() => plugin.stop()} // .current olib tashlandi
+					onMouseLeave={() => plugin.reset()} // .current olib tashlandi
 				>
 					<CarouselContent>
 						{discountCampaigns.map((campaign, index) => (
 							<CarouselItem key={campaign.id} className='w-full'>
-								{/* Slayd Kartasi */}
 								<div className='group relative w-full h-[450px] md:h-[500px] bg-[#050505] rounded-[32px] md:rounded-[48px] overflow-hidden flex flex-col md:flex-row items-center justify-between p-8 md:p-16'>
-									{/* Katta Chegirma Yozuvi (Orqa fonda qoladi) */}
+									{/* Katta Chegirma Yozuvi */}
 									<div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-0 select-none w-full text-center'>
 										<span
 											className='font-space-grotesk text-[120px] md:text-[250px] font-black text-transparent opacity-10 group-hover:scale-110 transition-transform duration-1000 ease-out'
@@ -140,24 +143,28 @@ export default function Hero() {
 											{campaign.description}
 										</p>
 
-										<Button className='font-montserrat rounded-full h-12 px-8 bg-white text-black hover:bg-gray-200 transition-all font-semibold group/btn'>
-											Xaridni boshlash
-											<ArrowRight className='ml-2 w-4 h-4 transform group-hover/btn:translate-x-1 transition-transform' />
+										<Button
+											asChild
+											className='font-montserrat rounded-full h-12 px-8 bg-white text-black hover:bg-gray-200 transition-all font-semibold group/btn'
+										>
+											<Link href={campaign.link}>
+												Xaridni boshlash
+												<ArrowRight className='ml-2 w-4 h-4 transform group-hover/btn:translate-x-1 transition-transform' />
+											</Link>
 										</Button>
 									</div>
 
 									{/* O'ng Tomon: Rasm */}
 									<div className='relative z-10 w-full md:w-1/2 h-48 md:h-full flex items-center justify-center transition-transform duration-700 ease-out group-hover:scale-110 group-hover:-rotate-3'>
-										{/* Rasm orqasidagi porlash effekti */}
 										<div
 											className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-gradient-to-tr ${campaign.color} blur-[80px] opacity-20 group-hover:opacity-40 transition-opacity duration-700 rounded-full`}
 										></div>
-
 										<div className='relative w-full h-[120%] max-w-[400px]'>
 											<Image
 												src={campaign.image}
 												alt={campaign.title}
 												fill
+												priority={index === 0}
 												className='object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]'
 												sizes='(max-width: 768px) 100vw, 50vw'
 											/>
@@ -168,7 +175,7 @@ export default function Hero() {
 						))}
 					</CarouselContent>
 
-					{/* Pagination chiziqlari (Dots o'rniga Vercel line indicator) */}
+					{/* Pagination chiziqlari */}
 					<div className='flex items-center justify-center space-x-2 mt-8'>
 						{discountCampaigns.map((_, index) => (
 							<button

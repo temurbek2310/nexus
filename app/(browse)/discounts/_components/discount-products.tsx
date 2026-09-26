@@ -3,10 +3,26 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { ArrowRight, Flame, ShoppingCart, Sparkles } from 'lucide-react'
+import { ArrowRight, Check, Flame, ShoppingCart, Sparkles } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
+import { useState } from 'react'
 
-const discountProducts = [
+// ZUSTAND IMPORT
+import { useCartStore } from '@/store/useCartStore'
+
+// 1. TypeScript Interfeysi
+interface DiscountProduct {
+	id: number
+	brand: string
+	name: string
+	oldPrice: number
+	price: number
+	image: string
+	tag?: string
+}
+
+const discountProducts: DiscountProduct[] = [
 	{
 		id: 1,
 		brand: 'APPLE',
@@ -81,6 +97,29 @@ const getBentoGridStyles = (index: number) => {
 }
 
 export default function DiscountProducts() {
+	const addItem = useCartStore(state => state.addItem)
+	const [addedItems, setAddedItems] = useState<Record<number, boolean>>({})
+
+	// 2. Savatga qo'shish funksiyasi
+	const handleAddToCart = (e: React.MouseEvent, product: DiscountProduct) => {
+		e.preventDefault()
+		e.stopPropagation()
+
+		addItem({
+			id: product.id,
+			brand: product.brand,
+			name: product.name,
+			price: product.price, // Number() shart emas, chunki type'da number turibdi
+			image: product.image,
+			quantity: 1,
+		})
+
+		setAddedItems(prev => ({ ...prev, [product.id]: true }))
+		setTimeout(() => {
+			setAddedItems(prev => ({ ...prev, [product.id]: false }))
+		}, 2000)
+	}
+
 	return (
 		<section className='py-20 md:py-24 bg-[#FAFAFA]'>
 			<div className='max-w-[1600px] mx-auto px-6 sm:px-12 lg:px-24'>
@@ -99,24 +138,29 @@ export default function DiscountProducts() {
 					</div>
 
 					<Button
+						asChild
 						variant='outline'
 						className='font-montserrat rounded-full px-6 h-12 bg-white hover:bg-gray-50 border-gray-200 text-black font-medium transition-all group'
 					>
-						Faqat qolganlarini ko'rish
-						<ArrowRight className='w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform' />
+						<Link href='/shop'>
+							Faqat qolganlarini ko'rish
+							<ArrowRight className='w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform' />
+						</Link>
 					</Button>
 				</div>
 
-				{/* MUAMMO HAL QILINDI: auto-rows-[350px] orqali kartalarga erkinroq balandlik berildi */}
+				{/* Grid Qismi */}
 				<div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 auto-rows-[350px] md:auto-rows-[380px]'>
 					{discountProducts.map((product, index) => {
 						const discountPercent = Math.round(
 							((product.oldPrice - product.price) / product.oldPrice) * 100,
 						)
 						const isFeatured = index === 0 || index === 3 || index === 6
+						const isAdded = addedItems[product.id] // Qaysi biri bosilganini tekshirish
 
 						return (
-							<div
+							<Link // 3. Kartani Link ga o'girdik
+								href={`/shop/${product.id}`}
 								key={product.id}
 								className={cn(
 									'group relative flex flex-col rounded-[2rem] bg-white border border-gray-200 overflow-hidden hover:border-gray-300 hover:shadow-2xl hover:shadow-black/5 transition-all duration-500',
@@ -145,10 +189,10 @@ export default function DiscountProducts() {
 									</Badge>
 								</div>
 
-								{/* MUAMMO HAL QILINDI: min-h-0 qoshildi, margin-top o'rniga pt-24 ishlatildi */}
+								{/* Rasm */}
 								<div
 									className={cn(
-										'relative flex-1 w-full flex items-center justify-center pt-24 pb-6 z-10 min-h-0',
+										'relative flex-1 w-full flex items-center justify-center pt-24 pb-6 z-10 min-h-0 pointer-events-none',
 										isFeatured ? 'px-12 md:px-20' : 'px-8',
 									)}
 								>
@@ -166,9 +210,9 @@ export default function DiscountProducts() {
 									</div>
 								</div>
 
-								{/* MUAMMO HAL QILINDI: shrink-0 qo'shildi! Endi bu qism pastga tushib ketmaydi va qotib turadi */}
+								{/* Pastki qism */}
 								<div className='relative z-20 p-6 md:p-8 bg-white/90 backdrop-blur-md border-t border-gray-100/60 flex items-end justify-between mt-auto shrink-0 transition-colors group-hover:bg-white'>
-									<div className='flex flex-col gap-1.5'>
+									<div className='flex flex-col gap-1.5 pointer-events-none'>
 										<h3
 											className={cn(
 												'font-space-grotesk font-bold text-gray-900 line-clamp-1 group-hover:text-black transition-colors',
@@ -189,24 +233,38 @@ export default function DiscountProducts() {
 										</div>
 									</div>
 
+									{/* 4. Savatga qo'shish tugmasi */}
 									<Button
+										onClick={e => handleAddToCart(e, product)}
 										size='icon'
 										className={cn(
-											'shrink-0 rounded-full border border-gray-200 transition-all duration-300 shadow-sm overflow-hidden group/cartbtn',
-											index === 0
-												? 'w-14 h-14 bg-black text-white hover:bg-gray-800'
-												: 'w-12 h-12 bg-white text-black hover:border-black hover:bg-black hover:text-white',
+											'shrink-0 rounded-full border border-gray-200 transition-all duration-300 shadow-sm overflow-hidden z-30 group/cartbtn',
+											index === 0 ? 'w-14 h-14' : 'w-12 h-12',
+											isAdded
+												? 'bg-green-500 text-white border-green-500 hover:bg-green-600'
+												: index === 0
+													? 'bg-black text-white hover:bg-gray-800'
+													: 'bg-white text-black hover:border-black hover:bg-black hover:text-white',
 										)}
 									>
-										<ShoppingCart
-											className={cn(
-												'transition-transform duration-300 group-hover/cartbtn:scale-110',
-												index === 0 ? 'w-5 h-5' : 'w-4 h-4',
-											)}
-										/>
+										{isAdded ? (
+											<Check
+												className={cn(
+													'animate-in zoom-in',
+													index === 0 ? 'w-6 h-6' : 'w-5 h-5',
+												)}
+											/>
+										) : (
+											<ShoppingCart
+												className={cn(
+													'transition-transform duration-300 group-hover/cartbtn:scale-110',
+													index === 0 ? 'w-5 h-5' : 'w-4 h-4',
+												)}
+											/>
+										)}
 									</Button>
 								</div>
-							</div>
+							</Link>
 						)
 					})}
 				</div>

@@ -1,3 +1,5 @@
+'use client'
+
 import { Badge } from '@/components/ui/badge'
 import {
 	Carousel,
@@ -11,7 +13,6 @@ import { ArrowRight, Sparkles } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
-// 1. Kategoriyalar datasi (Hero Karusel uchun)
 const categories = [
 	{
 		id: 1,
@@ -48,31 +49,28 @@ const categories = [
 		theme: 'light',
 	},
 ]
+
 const Catalog = () => {
 	return (
 		<section className='relative pt-32 pb-24 overflow-hidden'>
-			{/* Ambient yorug'lik effekti */}
 			<div className='absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-gray-200/50 rounded-full blur-[120px] pointer-events-none'></div>
 
 			<div className='max-w-[1600px] mx-auto px-6 sm:px-12 lg:px-24'>
 				<Carousel opts={{ align: 'start', dragFree: true }} className='w-full'>
 					<div className='flex flex-col xl:flex-row gap-12 lg:gap-20'>
-						{/* CHAP TOMON: Qotib turuvchi (Sticky) Sarlavha */}
+						{/* CHAP TOMON */}
 						<div className='xl:w-1/3 xl:sticky xl:top-40 h-fit z-20 flex flex-col justify-between'>
 							<div>
 								<Badge
 									variant='outline'
 									className='mb-6 bg-white border-gray-200 text-black font-space-grotesk tracking-widest uppercase py-1.5 px-4 flex items-center gap-2 w-max shadow-sm'
 								>
-									<Sparkles className='size-3' />
-									NEXUS Katalog
+									<Sparkles className='size-3' /> NEXUS Katalog
 								</Badge>
-
 								<h1 className='font-space-grotesk text-5xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-black leading-[1.05] mb-6'>
 									Chegarasiz <br className='hidden md:block' />
 									<span className='text-gray-400'>imkoniyatlar.</span>
 								</h1>
-
 								<p className='font-montserrat text-gray-500 text-base md:text-lg text-balance max-w-md'>
 									Texnologiya va san'at uyg'unligi. O'zingizga kerakli bo'limni
 									kashf eting va xaridlarni boshlang.
@@ -88,7 +86,7 @@ const Catalog = () => {
 							</div>
 						</div>
 
-						{/* O'NG TOMON: Karusel */}
+						{/* O'NG TOMON */}
 						<div className='xl:w-2/3 w-full relative z-10'>
 							<CarouselContent className='-ml-4 md:-ml-8'>
 								{categories.map(category => {
@@ -165,8 +163,10 @@ const Catalog = () => {
 													>
 														{category.description}
 													</p>
+
+													{/* MUAMMO HAL QILINDI: To'g'ri URL ga link */}
 													<Link
-														href={`/category/${category.title.toLowerCase()}`}
+														href={`/shop?category=${category.title}`}
 														className={cn(
 															'relative size-12 shrink-0 rounded-full flex items-center justify-center transition-all duration-500 z-30 group/btn',
 															isDark

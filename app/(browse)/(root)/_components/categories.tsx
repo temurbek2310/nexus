@@ -1,16 +1,16 @@
-import { cn } from '@/lib/utils' // Shadcn ishlatayotganingiz uchun bu funksiya bor deb hisobladim
+'use client'
+
+import { cn } from '@/lib/utils'
 import { ArrowUpRight } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
-// Har bir karta uchun grid o'lchamlari va rasm joylashuvini alohida belgilab oldik
 const categories = [
 	{
 		id: 1,
 		title: 'Drones',
 		description: 'Smart Aerial Devices For Photography, Video, And Exploration',
 		image: '/drones.png',
-		// Katta asosiy karta (2 ta ustun, 2 ta qatorni egallaydi)
 		className: 'md:col-span-2 md:row-span-2 min-h-[400px] md:min-h-[600px]',
 		imageClass: 'w-[90%] h-[80%] md:w-[85%] md:h-[85%] bottom-0 right-0',
 		textClass: 'max-w-md',
@@ -20,7 +20,6 @@ const categories = [
 		title: 'Audio',
 		description: 'Headphones And Sound Gear Designed For Clarity.',
 		image: '/audio.png',
-		// O'ng tepa burchakdagi kichik karta
 		className: 'md:col-span-1 md:row-span-1 min-h-[300px]',
 		imageClass: 'w-[80%] h-[70%] bottom-0 right-[-10%]',
 		textClass: 'max-w-[200px]',
@@ -30,7 +29,6 @@ const categories = [
 		title: 'Stabilizers',
 		description: 'Gimbals That Deliver Smooth, Cinematic Motion.',
 		image: '/stabilizers.png',
-		// O'ng pastki burchakdagi kichik karta
 		className: 'md:col-span-1 md:row-span-1 min-h-[300px]',
 		imageClass: 'w-[80%] h-[70%] bottom-0 right-[-10%]',
 		textClass: 'max-w-[200px]',
@@ -41,7 +39,6 @@ const categories = [
 		description:
 			'Powerful Laptops Built For Performance, Creativity, And Daily Work',
 		image: '/computers.png',
-		// Pastdagi uzun va keng karta (3 ta ustunni egallaydi)
 		className: 'md:col-span-3 md:row-span-1 min-h-[350px] md:min-h-[300px]',
 		imageClass:
 			'w-[90%] md:w-[40%] h-[85%] md:h-[120%] bottom-0 md:-bottom-10 right-[-5%] md:right-10',
@@ -64,8 +61,9 @@ const Categories = () => {
 						</p>
 					</div>
 
+					{/* MUAMMO HAL QILINDI: To'g'ri sahifaga yo'naltirish */}
 					<Link
-						href='/catalog'
+						href='/shop'
 						className='group flex items-center gap-2 font-montserrat text-sm font-medium text-black hover:text-gray-600 transition-colors'
 					>
 						Barcha kategoriyalar
@@ -73,21 +71,19 @@ const Categories = () => {
 					</Link>
 				</div>
 
-				{/* 3 ta ustunli Asimmetrik Grid (Bento Box) */}
 				<div className='grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 auto-rows-fr'>
 					{categories.map(category => (
 						<Link
 							key={category.id}
-							href={`/browse?category=${category.title.toLowerCase()}`}
+							// MUAMMO HAL QILINDI: Shop sahifasining filtriga ulandi
+							href={`/shop?category=${category.title}`}
 							className={cn(
 								'group relative block rounded-3xl bg-gray-50 border border-gray-200 overflow-hidden hover:border-gray-300 transition-colors',
 								category.className,
 							)}
 						>
-							{/* Muhandislik setkasi (Grid Pattern) */}
 							<div className='absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-size-[24px_24px] pointer-events-none'></div>
 
-							{/* Matnlar va Ikonka */}
 							<div className='absolute top-0 left-0 w-full p-6 md:p-8 z-20 flex justify-between items-start pointer-events-none'>
 								<div className='pointer-events-auto'>
 									<h3 className='font-space-grotesk text-2xl md:text-3xl font-bold text-gray-900 mb-2 md:mb-3'>
@@ -102,14 +98,11 @@ const Categories = () => {
 										{category.description}
 									</p>
 								</div>
-
-								{/* Tailwind so'nggi versiyasidagi 'size-10' (w-10 h-10 o'rniga) */}
 								<div className='size-10 shrink-0 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm group-hover:bg-black group-hover:text-white group-hover:border-black transition-all duration-300 pointer-events-auto ml-4'>
 									<ArrowUpRight className='size-5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300' />
 								</div>
 							</div>
 
-							{/* Rasm qismi (Massivga biriktirilgan dinamik klasslar bilan) */}
 							<div
 								className={cn(
 									'absolute z-10 flex items-end justify-end pointer-events-none',
@@ -117,9 +110,7 @@ const Categories = () => {
 								)}
 							>
 								<div className='relative w-full h-full'>
-									{/* Orqa fon nur effekti */}
 									<div className='absolute inset-0 bg-gray-300 rounded-full blur-[60px] opacity-0 group-hover:opacity-30 transition-opacity duration-700'></div>
-
 									<Image
 										src={category.image}
 										alt={category.title}

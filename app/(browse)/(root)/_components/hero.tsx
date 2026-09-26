@@ -46,7 +46,7 @@ const Hero = () => {
 								size='lg'
 								className='h-12 px-8 rounded-md bg-black text-white hover:bg-gray-800 hover:shadow-lg hover:shadow-black/10 transition-all duration-300 text-sm font-medium'
 							>
-								<Link href='/browse'>
+								<Link href='/catalog'>
 									Katalogni ochish
 									<ArrowRight className='w-4 h-4 ml-2' />
 								</Link>
