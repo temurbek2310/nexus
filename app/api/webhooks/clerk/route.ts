@@ -25,24 +25,25 @@ export async function POST(req: Request) {
 		})
 	}
 
-	const payload = await req.json()
-	const body = JSON.stringify(payload)
+	// 1. Body ni to'g'ridan-to'g'ri string sifatida o'qiymiz
+	const body = await req.text()
 
 	const wh = new Webhook(WEBHOOK_SECRET)
 
-	let evt: WebhookEvent
-
+	// 2. Svix faqat imzo to'g'riligini tekshiradi (hech narsa qaytarmaydi)
 	try {
-		evt = wh.verify(body, {
+		wh.verify(body, {
 			'svix-id': svix_id,
 			'svix-timestamp': svix_timestamp,
 			'svix-signature': svix_signature,
-		}) as unknown as WebhookEvent
+		})
 	} catch (err) {
 		console.error('Webhook tasdiqlashda xatolik:', err)
 		return new Response('Xatolik yuz berdi', { status: 400 })
 	}
 
+	// 3. Tasdiqlangandan so'ng body ni WebhookEvent obyektiga aylantiramiz
+	const evt = JSON.parse(body) as WebhookEvent
 	const eventType = evt.type
 
 	// 1. FOYDALANUVCHI YARATILGANDA
