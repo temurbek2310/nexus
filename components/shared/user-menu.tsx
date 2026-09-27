@@ -8,7 +8,7 @@ import {
 	PopoverTrigger,
 } from '@/components/ui/popover'
 import { useClerk, useUser } from '@clerk/nextjs'
-import { LogOut, Settings, User } from 'lucide-react'
+import { LogOut, Settings, ShoppingBag, User } from 'lucide-react'
 import Link from 'next/link'
 
 export const UserMenu = () => {
@@ -21,7 +21,6 @@ export const UserMenu = () => {
 
 	return (
 		<Popover>
-			{/* MUAMMO HAL QILINDI: asChild olib tashlandi va klasslar to'g'ridan-to'g'ri PopoverTrigger ga berildi */}
 			<PopoverTrigger className='rounded-full outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 transition-all hover:opacity-80 cursor-pointer'>
 				<Avatar className='size-9 border border-gray-200'>
 					<AvatarImage src={user.imageUrl} alt={user.fullName || 'User'} />
@@ -50,7 +49,7 @@ export const UserMenu = () => {
 						variant='ghost'
 						className='justify-start px-3 h-10 text-sm font-medium hover:bg-gray-50 rounded-xl cursor-pointer'
 					>
-						<Link href='/profile'>
+						<Link href='/dashboard'>
 							<User className='size-4 mr-2 text-gray-500' /> Profil
 						</Link>
 					</Button>
@@ -60,7 +59,17 @@ export const UserMenu = () => {
 						variant='ghost'
 						className='justify-start px-3 h-10 text-sm font-medium hover:bg-gray-50 rounded-xl cursor-pointer'
 					>
-						<Link href='/settings'>
+						<Link href='/dashboard/orders'>
+							<ShoppingBag className='size-4 mr-2 text-gray-500' /> Orders
+						</Link>
+					</Button>
+
+					<Button
+						asChild
+						variant='ghost'
+						className='justify-start px-3 h-10 text-sm font-medium hover:bg-gray-50 rounded-xl cursor-pointer'
+					>
+						<Link href='/dashboard/user-profile'>
 							<Settings className='size-4 mr-2 text-gray-500' /> Sozlamalar
 						</Link>
 					</Button>
