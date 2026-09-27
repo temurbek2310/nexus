@@ -1,4 +1,13 @@
+import dns from 'dns'
 import mongoose, { Mongoose } from 'mongoose'
+
+// Windows va mahalliy tarmoqlarda MongoDB Atlas SRV rekordlarini resolve qilishda
+// uchraydigan "querySrv ECONNREFUSED" xatoligini oldini olish
+try {
+	dns.setServers(['8.8.8.8', '8.8.4.4'])
+} catch {
+	// Muhit ruxsat bermasa e'tiborsiz qoldiriladi
+}
 
 const MONGODB_URI = process.env.MONGODB_URI
 
@@ -8,7 +17,6 @@ interface MongooseConnection {
 }
 
 declare global {
-	// eslint-disable-next-line no-var
 	var mongoose: MongooseConnection | undefined
 }
 
