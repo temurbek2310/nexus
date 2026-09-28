@@ -55,8 +55,11 @@ function ShopContent() {
 					p.brand.toLowerCase().includes(q.toLowerCase()),
 			)
 		}
-		if (category !== 'Barchasi') {
-			result = result.filter(p => p.category === category)
+		// Barchasi so'zini ham katta-kichikligidan qat'iy nazar tekshiramiz
+		if (category && category.toLowerCase() !== 'barchasi') {
+			result = result.filter(
+				p => p.category.toLowerCase() === category.toLowerCase(),
+			)
 		}
 		if (min) {
 			result = result.filter(p => p.price >= Number(min))

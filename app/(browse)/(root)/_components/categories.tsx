@@ -76,7 +76,7 @@ const Categories = () => {
 						<Link
 							key={category.id}
 							// MUAMMO HAL QILINDI: Shop sahifasining filtriga ulandi
-							href={`/shop?category=${category.title}`}
+							href={`/shop?category=${category.title.toLowerCase()}`}
 							className={cn(
 								'group relative block rounded-3xl bg-gray-50 border border-gray-200 overflow-hidden hover:border-gray-300 transition-colors',
 								category.className,

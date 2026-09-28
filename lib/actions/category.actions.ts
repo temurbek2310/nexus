@@ -10,6 +10,7 @@ export interface ICategory {
 	title: string
 	slug: string
 	image: string | null
+	description?: string // YANGLIK
 	productCount: number
 	status: 'Faol' | 'Faol emas'
 }

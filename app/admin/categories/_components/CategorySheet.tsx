@@ -11,15 +11,15 @@ import {
 	createCategory,
 	ICategory,
 	updateCategory,
-} from '@/lib/actions/category.actions' // ACTIONLAR IMPORT QILINDI
+} from '@/lib/actions/category.actions'
 import { UploadButton } from '@/lib/uploadthing'
-import { Loader2, X } from 'lucide-react'
+import { ImagePlus, Loader2, X } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 
 interface CategorySheetProps {
 	isOpen: boolean
 	setIsOpen: (val: boolean) => void
-	initialData?: ICategory | null // Endi ICategory (real db interface) ishlatamiz
+	initialData?: ICategory | null
 }
 
 export default function CategorySheet({
@@ -36,6 +36,7 @@ export default function CategorySheet({
 	const [title, setTitle] = useState('')
 	const [slug, setSlug] = useState('')
 	const [image, setImage] = useState<string | null>(null)
+	const [description, setDescription] = useState('') // YANGLIK: Description state
 	const [status, setStatus] = useState<'Faol' | 'Faol emas'>('Faol')
 
 	// Oyna ochilganda ma'lumotlarni to'ldirish
@@ -46,11 +47,13 @@ export default function CategorySheet({
 				setTitle(initialData.title)
 				setSlug(initialData.slug)
 				setImage(initialData.image)
+				setDescription(initialData.description || '') // YANGLIK
 				setStatus(initialData.status)
 			} else {
 				setTitle('')
 				setSlug('')
 				setImage(null)
+				setDescription('') // YANGLIK
 				setStatus('Faol')
 			}
 		}
@@ -69,23 +72,20 @@ export default function CategorySheet({
 		}
 	}
 
-	// --- HAQIQIY SUBMIT LOGIKASI ---
 	const onSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
 		setIsLoading(true)
 		setError(null)
 
-		const payload = { title, slug, image, status }
+		const payload = { title, slug, image, description, status } // YANGLIK: Payloadga qo'shildi
 
 		try {
 			if (isEditing && initialData) {
-				// Tahrirlash
 				await updateCategory(initialData._id, payload)
 			} else {
-				// Yangi yaratish
 				await createCategory(payload)
 			}
-			setIsOpen(false) // Muvaffaqiyatli bo'lsa oynani yopamiz
+			setIsOpen(false)
 		} catch (err: any) {
 			setError(err.message || 'Xatolik yuz berdi')
 		} finally {
@@ -113,7 +113,6 @@ export default function CategorySheet({
 						onSubmit={onSubmit}
 						className='flex flex-col space-y-8'
 					>
-						{/* Xatolik chiqsa ko'rsatish */}
 						{error && (
 							<div className='bg-red-50 text-red-600 p-3 rounded-xl text-sm font-semibold border border-red-100'>
 								{error}
@@ -144,20 +143,23 @@ export default function CategorySheet({
 									</div>
 								) : (
 									<div
-										className={`w-32 h-32 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center transition-all ${isUploading ? 'opacity-50' : 'hover:border-black'}`}
+										className={`relative w-32 h-32 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden transition-all ${
+											isUploading
+												? 'opacity-50'
+												: 'hover:border-black hover:bg-gray-100'
+										}`}
 									>
 										{isUploading ? (
-											<Loader2 className='w-6 h-6 animate-spin text-gray-400' />
+											<div className='flex flex-col items-center justify-center space-y-2 pointer-events-none'>
+												<Loader2 className='w-6 h-6 animate-spin text-gray-400' />
+											</div>
 										) : (
 											<UploadButton
 												endpoint='categoryImage'
-												onUploadBegin={() => {
-													setIsUploading(true)
-												}}
+												onUploadBegin={() => setIsUploading(true)}
 												onClientUploadComplete={res => {
 													setIsUploading(false)
 													if (res && res[0]) {
-														// HAQIQIY URL NI SAQLASH (Deprecated xatosi bo'lmasligi uchun ufsUrl olinadi)
 														setImage(res[0].ufsUrl || res[0].url)
 													}
 												}}
@@ -166,15 +168,20 @@ export default function CategorySheet({
 													alert(`Yuklashda xatolik: ${error.message}`)
 												}}
 												appearance={{
+													container: 'w-full h-full m-0 p-0 absolute inset-0',
 													button:
-														'w-full h-full bg-transparent text-[11px] font-bold text-gray-400 cursor-pointer p-0 m-0 after:hidden',
+														'w-full h-full !bg-transparent !text-gray-400 hover:!text-black font-montserrat flex flex-col items-center justify-center gap-1 focus-within:ring-0 after:hidden !m-0 !p-0 border-none outline-none cursor-pointer transition-colors',
 													allowedContent: 'hidden',
 												}}
 												content={{
-													button({ ready }) {
-														if (ready) return 'YUKLASH'
-														return 'Tayyorlanmoqda...'
-													},
+													button: (
+														<div className='flex flex-col items-center justify-center gap-1'>
+															<ImagePlus className='w-5 h-5' />
+															<span className='text-[10px] font-bold'>
+																Yuklash
+															</span>
+														</div>
+													),
 												}}
 											/>
 										)}
@@ -224,6 +231,23 @@ export default function CategorySheet({
 										className='w-full rounded-xl border border-gray-200 py-3 pl-6 pr-3 text-sm font-mono outline-none transition-all focus:border-black focus:ring-1 focus:ring-black shadow-sm'
 									/>
 								</div>
+								<span className='text-[11px] text-gray-400 font-medium ml-1'>
+									Veb-saytda ko'rinadigan qisqa havola nomi.
+								</span>
+							</div>
+
+							{/* YANGLIK: Tavsif (Description) inputi */}
+							<div className='flex flex-col gap-1.5'>
+								<label className='text-sm font-semibold text-gray-700'>
+									Tavsif (Description)
+								</label>
+								<textarea
+									value={description}
+									onChange={e => setDescription(e.target.value)}
+									rows={3}
+									placeholder="Kategoriya haqida qisqacha ma'lumot..."
+									className='w-full rounded-xl border border-gray-200 p-3 text-sm font-medium outline-none transition-all focus:border-black focus:ring-1 focus:ring-black shadow-sm resize-none custom-scrollbar'
+								></textarea>
 							</div>
 
 							<div className='flex flex-col gap-1.5 mt-2'>

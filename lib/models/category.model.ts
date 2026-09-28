@@ -15,6 +15,10 @@ const CategorySchema = new Schema(
 			type: String,
 			default: null, // Rasm bo'lmasligi ham mumkin
 		},
+		description: {
+			type: String,
+			default: '', // YANGLIK: Tavsif maydoni
+		},
 		productCount: {
 			type: Number,
 			default: 0,
