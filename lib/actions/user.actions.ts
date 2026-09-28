@@ -1,74 +1,77 @@
 'use server'
 
-import User from '@/lib/models/user.model'
-import { connectToDatabase } from '@/lib/mongoose'
+import { revalidatePath } from 'next/cache'
+import { connection } from 'next/server'
+import User from '../models/user.model' // Siz bergan User modeli
+import { connectToDatabase } from '../mongoose'
 
-export type CreateUserParams = {
+export interface IUser {
+	_id: string
 	clerkId: string
 	email: string
-	username: string | null
-	firstName: string | null
-	lastName: string | null
-	photo: string
+	username?: string
+	firstName?: string
+	lastName?: string
+	photo?: string
+	role: 'user' | 'admin'
+	createdAt: string
 }
 
-export type UpdateUserParams = {
-	username: string | null
-	firstName: string | null
-	lastName: string | null
-	photo: string
-}
-
-// Yangi foydalanuvchi yaratish
-export async function createUser(user: CreateUserParams) {
+export async function getUsers({
+	query = '',
+	page = 1,
+	limit = 10,
+}: {
+	query?: string
+	page?: number
+	limit?: number
+}) {
 	try {
+		await connection() // Next.js 16 dinamik render
 		await connectToDatabase()
-		const newUser = await User.create(user)
-		return JSON.parse(JSON.stringify(newUser))
-	} catch (error: unknown) {
-		console.error('MONGODB GA YOZISHDA XATOLIK:', error)
-		throw new Error(
-			`Foydalanuvchini yaratishda xatolik: ${error instanceof Error ? error.message : String(error)}`,
-		)
-	}
-}
 
-// Foydalanuvchi ma'lumotlarini yangilash
-export async function updateUser(clerkId: string, user: UpdateUserParams) {
-	try {
-		await connectToDatabase()
-		const updatedUser = await User.findOneAndUpdate({ clerkId }, user, {
-			new: true,
-		})
-		return JSON.parse(JSON.stringify(updatedUser))
-	} catch (error: unknown) {
-		console.error('MONGODB NI YANGILASHDA XATOLIK:', error)
-		throw new Error(
-			`Foydalanuvchini yangilashda xatolik: ${error instanceof Error ? error.message : String(error)}`,
-		)
-	}
-}
+		const skip = (page - 1) * limit
 
-// Foydalanuvchini o'chirish (Tuzatildi: Agar topilmasa xato tashlamaydi)
-export async function deleteUser(clerkId: string) {
-	try {
-		await connectToDatabase()
-		const userToDelete = await User.findOne({ clerkId })
+		// Qidiruv mantiqi (Ism, familiya, email yoki username bo'yicha qidiradi)
+		const searchFilter = query
+			? {
+					$or: [
+						{ firstName: { $regex: query, $options: 'i' } },
+						{ lastName: { $regex: query, $options: 'i' } },
+						{ email: { $regex: query, $options: 'i' } },
+						{ username: { $regex: query, $options: 'i' } },
+					],
+				}
+			: {}
 
-		if (!userToDelete) {
-			console.log(
-				"O'chiriladigan foydalanuvchi bazadan topilmadi (allaqachon o'chirilgan):",
-				clerkId,
-			)
-			return null
+		const users = await User.find(searchFilter)
+			.sort({ createdAt: -1 })
+			.skip(skip)
+			.limit(limit)
+
+		const totalUsers = await User.countDocuments(searchFilter)
+		const totalPages = Math.ceil(totalUsers / limit)
+
+		return {
+			users: JSON.parse(JSON.stringify(users)) as IUser[],
+			totalPages,
+			currentPage: page,
+			totalUsers,
 		}
+	} catch (error) {
+		console.error('Foydalanuvchilarni olishda xatolik:', error)
+		return { users: [], totalPages: 1, currentPage: 1, totalUsers: 0 }
+	}
+}
 
-		const deletedUser = await User.findByIdAndDelete(userToDelete._id)
-		return deletedUser ? JSON.parse(JSON.stringify(deletedUser)) : null
-	} catch (error: unknown) {
-		console.error("MONGODB DAN O'CHIRISHDA XATOLIK:", error)
-		throw new Error(
-			`Foydalanuvchini o'chirishda xatolik: ${error instanceof Error ? error.message : String(error)}`,
-		)
+// User rolini o'zgartirish (Admin qilish yoki User ga qaytarish)
+export async function toggleUserRole(id: string, currentRole: string) {
+	try {
+		await connectToDatabase()
+		const newRole = currentRole === 'admin' ? 'user' : 'admin'
+		await User.findByIdAndUpdate(id, { role: newRole })
+		revalidatePath('/admin/users')
+	} catch (error: any) {
+		throw new Error(`Rolni o'zgartirishda xatolik: ${error.message}`)
 	}
 }
