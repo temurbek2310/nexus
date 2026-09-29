@@ -1,7 +1,6 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { connection } from 'next/server'
 import Category from '../models/category.model'
 import Product from '../models/product.model'
 import { connectToDatabase } from '../mongoose'
@@ -86,7 +85,6 @@ export async function updateProduct(id: string, data: Partial<IProduct>) {
 // 3. Barcha mahsulotlarni qidiruv bilan olish
 export async function getProducts({ query = '' }: { query?: string }) {
 	try {
-		await connection() // Next.js 16
 		await connectToDatabase()
 
 		const searchFilter = query

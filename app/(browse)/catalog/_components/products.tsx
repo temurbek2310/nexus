@@ -1,233 +1,133 @@
-'use client'
+import { getProducts } from '@/lib/actions/product.actions'
+import { Loader2 } from 'lucide-react'
+import { unstable_cache } from 'next/cache'
+import { Suspense } from 'react'
+import ProductsClient, { Product } from './ProductsClient'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { Box, Check, ShoppingCart } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { useState } from 'react'
-
-// ZUSTAND IMPORT
-import { useCartStore } from '@/store/useCartStore'
-
-// 1. TypeScript Interfeysi qo'shildi
-interface Product {
-	id: number
-	brand: string
-	name: string
-	oldPrice: string
-	price: string
-	image: string
+// Backend tipizatsiyasi
+interface IBackendProduct {
+	_id: { toString: () => string } | string
+	title: string
+	status: string
+	price: number
+	discountPrice?: number | null
+	images?: string[]
+	category?: { _id?: string | { toString: () => string } } | string | null
+	specs?: { key: string; value: string }[]
 }
 
-const products: Product[] = [
-	{
-		id: 1,
-		brand: 'VOLTIA',
-		name: 'PowerCore 65W',
-		oldPrice: '39',
-		price: '22',
-		image: '/powercore.png',
-	},
-	{
-		id: 2,
-		brand: 'HYDRON',
-		name: 'Smart Bottle',
-		oldPrice: '40',
-		price: '35',
-		image: '/bottle.png',
-	},
-	{
-		id: 3,
-		brand: 'NEXA',
-		name: 'PocketPower 10K',
-		oldPrice: '55',
-		price: '39',
-		image: '/pocketpower.png',
-	},
-	{
-		id: 4,
-		brand: 'HOMEY',
-		name: 'HOMEY Video Doorbell',
-		oldPrice: '99',
-		price: '79',
-		image: '/doorbell.png',
-	},
-	{
-		id: 5,
-		brand: 'HYDRON',
-		name: 'Smart Bottle',
-		oldPrice: '40',
-		price: '35',
-		image: '/bottle.png',
-	},
-	{
-		id: 6,
-		brand: 'NEXA',
-		name: 'PocketPower 10K',
-		oldPrice: '55',
-		price: '39',
-		image: '/pocketpower.png',
-	},
-	{
-		id: 7,
-		brand: 'HOMEY',
-		name: 'HOMEY Video Doorbell',
-		oldPrice: '99',
-		price: '79',
-		image: '/doorbell.png',
-	},
-]
+// 1. ESLint qoidalarini buzmaydigan, toza Server Mantiq
+async function fetchAndFormatProducts(): Promise<{
+	products: Product[]
+	error: string | null
+}> {
+	try {
+		const allProducts = (await getProducts({})) as IBackendProduct[]
 
-const getGridStyles = (index: number) => {
-	if (index === 0)
-		return 'lg:col-span-2 lg:row-span-2 min-h-[400px] lg:min-h-[550px]'
-	if (index === 5 || index === 6)
-		return 'sm:col-span-2 lg:col-span-2 lg:row-span-1 min-h-[300px]'
-	return 'col-span-1 row-span-1 min-h-[300px]'
-}
+		if (!allProducts || allProducts.length === 0) {
+			return { products: [], error: null }
+		}
 
-const Products = () => {
-	const addItem = useCartStore(state => state.addItem)
-	const [addedItems, setAddedItems] = useState<Record<number, boolean>>({})
+		// Faqat faol mahsulotlarni ajratib olamiz
+		const valid = allProducts.filter(p => p.status === 'Faol')
 
-	// 2. Savatga qo'shish funksiyasi
-	const handleAddToCart = (e: React.MouseEvent, product: Product) => {
-		e.preventDefault()
-		e.stopPropagation()
+		// Avval hamma ma'lumotni aralashtiramiz (har safar turli xil chiqishi uchun)
+		for (let i = valid.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1))
+			;[valid[i], valid[j]] = [valid[j], valid[i]]
+		}
 
-		addItem({
-			id: product.id,
-			brand: product.brand,
-			name: product.name,
-			price: Number(product.price),
-			image: product.image,
-			quantity: 1, // Majburiy quantity qo'shildi
+		const selected: IBackendProduct[] = []
+		const categoryCounts: Record<string, number> = {}
+
+		// 1-bosqich: Har xil kategoriyalardan eng ko'pi bilan 2 tadan tanlab olamiz (Xilma-xillik uchun)
+		for (const p of valid) {
+			const catId =
+				typeof p.category === 'object' && p.category?._id
+					? p.category._id.toString()
+					: p.category?.toString() || 'no-category'
+
+			if ((categoryCounts[catId] || 0) < 2) {
+				selected.push(p)
+				categoryCounts[catId] = (categoryCounts[catId] || 0) + 1
+			}
+
+			if (selected.length === 12) break
+		}
+
+		// 2-bosqich: Agar kategoriyalar kamligi sabab 12 ta to'lmasa, qolgan ixtiyoriy narsalarni qo'shamiz
+		if (selected.length < 12) {
+			for (const p of valid) {
+				if (!selected.find(s => s._id.toString() === p._id.toString())) {
+					selected.push(p)
+				}
+				if (selected.length === 12) break
+			}
+		}
+
+		// Client qismi kutayotgan UI interfeysiga formatlaymiz
+		const formattedProducts: Product[] = selected.map(p => {
+			const brandObj = p.specs?.find(
+				s => s.key.toLowerCase() === 'brend' || s.key.toLowerCase() === 'brand',
+			)
+
+			return {
+				id: p._id.toString(),
+				brand: brandObj?.value || 'NEXUS',
+				name: p.title,
+				oldPrice: p.discountPrice ? p.price.toString() : null,
+				price: (p.discountPrice || p.price).toString(),
+				image:
+					p.images && p.images.length > 0 ? p.images[0] : '/placeholder.png',
+			}
 		})
 
-		setAddedItems(prev => ({ ...prev, [product.id]: true }))
-		setTimeout(() => {
-			setAddedItems(prev => ({ ...prev, [product.id]: false }))
-		}, 2000)
+		return { products: formattedProducts, error: null }
+	} catch (err: unknown) {
+		console.error('Barcha mahsulotlarni yuklashda xatolik:', err)
+		const errorMessage =
+			err instanceof Error ? err.message : "Noma'lum xatolik yuz berdi"
+		return { products: [], error: errorMessage }
 	}
-
-	return (
-		<section className='py-24 bg-white border-t border-gray-200'>
-			<div className='max-w-[1600px] mx-auto px-6 sm:px-12 lg:px-24'>
-				<div className='flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6'>
-					<div>
-						<Badge
-							variant='outline'
-							className='mb-4 bg-gray-50 border-gray-200 text-black font-space-grotesk tracking-widest uppercase py-1 px-3 flex items-center gap-2 w-max'
-						>
-							<Box className='size-3.5' />
-							Barcha mahsulotlar
-						</Badge>
-						<h2 className='font-space-grotesk text-3xl md:text-4xl font-bold tracking-tight text-black'>
-							Katalog to'plami
-						</h2>
-						<p className='font-montserrat text-gray-500 mt-3 max-w-md text-sm text-balance'>
-							Barcha gadjetlar, kameralar va aqlli qurilmalar ro'yxati.
-							O'zingizga kerakli uskunani tanlang.
-						</p>
-					</div>
-				</div>
-
-				<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 auto-rows-fr'>
-					{products.map((product, index) => {
-						const discountPercent = Math.round(
-							((Number(product.oldPrice) - Number(product.price)) /
-								Number(product.oldPrice)) *
-								100,
-						)
-						const isFeatured = index === 0
-						const isAdded = addedItems[product.id] // Shu mahsulot bosilganligini tekshiramiz
-
-						return (
-							<Link // Div o'rniga Link qildik, mahsulot sahifasiga kirish uchun
-								href={`/shop/${product.id}`}
-								key={product.id}
-								className={cn(
-									'group relative flex flex-col rounded-3xl bg-white border border-gray-200 overflow-hidden hover:border-gray-300 hover:shadow-xl transition-all duration-300',
-									getGridStyles(index),
-								)}
-							>
-								{isFeatured && (
-									<div className='absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none'></div>
-								)}
-
-								<div className='absolute top-0 left-0 w-full p-5 md:p-6 flex justify-between items-start z-20 pointer-events-none'>
-									<span className='font-space-grotesk text-xs md:text-sm font-bold tracking-widest text-gray-400 uppercase'>
-										{product.brand}
-									</span>
-									<Badge className='bg-black text-white hover:bg-gray-800 font-montserrat text-xs pointer-events-auto rounded-md px-2 py-0.5'>
-										-{discountPercent}%
-									</Badge>
-								</div>
-
-								<div className='relative flex-1 w-full flex items-center justify-center p-8 mt-8 pointer-events-none'>
-									{isFeatured && (
-										<div className='absolute inset-0 bg-gray-100 rounded-full blur-[80px] opacity-0 group-hover:opacity-50 transition-opacity duration-700 w-3/4 h-3/4 m-auto'></div>
-									)}
-									<Image
-										src={product.image}
-										alt={product.name}
-										fill
-										className={cn(
-											'object-contain p-8 md:p-12 drop-shadow-lg group-hover:scale-105 transition-transform duration-700 ease-out',
-											isFeatured ? 'p-12 md:p-20' : 'p-8',
-										)}
-										sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw'
-									/>
-								</div>
-
-								<div className='relative z-20 p-5 md:p-6 bg-white/80 backdrop-blur-md border-t border-gray-100 flex items-end justify-between mt-auto'>
-									<div className='flex flex-col gap-1 pointer-events-none'>
-										<h3
-											className={cn(
-												'font-space-grotesk font-bold text-gray-900 line-clamp-1',
-												isFeatured ? 'text-xl md:text-2xl' : 'text-lg',
-											)}
-										>
-											{product.name}
-										</h3>
-										<div className='flex items-center gap-2 font-montserrat'>
-											<span className='text-gray-400 line-through text-xs md:text-sm'>
-												${product.oldPrice}
-											</span>
-											<span className='text-black font-semibold text-base md:text-lg'>
-												${product.price}
-											</span>
-										</div>
-									</div>
-
-									{/* 3. Savatga qo'shish tugmasi */}
-									<Button
-										onClick={e => handleAddToCart(e, product)}
-										size='icon'
-										variant='outline'
-										className={cn(
-											'size-10 shrink-0 rounded-full transition-all duration-300 shadow-sm z-30',
-											isAdded
-												? 'bg-green-500 text-white border-green-500 hover:bg-green-600 hover:text-white'
-												: 'border-gray-200 hover:border-black hover:bg-black hover:text-white group-hover:shadow-md',
-										)}
-									>
-										{isAdded ? (
-											<Check className='size-4 animate-in zoom-in' />
-										) : (
-											<ShoppingCart className='size-4' />
-										)}
-									</Button>
-								</div>
-							</Link>
-						)
-					})}
-				</div>
-			</div>
-		</section>
-	)
 }
 
-export default Products
+// 2. Keshlovchi funksiya (soatiga yangilanadi)
+const getCachedProducts = unstable_cache(
+	async () => {
+		return await fetchAndFormatProducts()
+	},
+	['home-all-products-v1'],
+	{ revalidate: 3600 },
+)
+
+// 3. Asosiy Data render qismi
+const ProductsData = async () => {
+	const { products, error } = await getCachedProducts()
+
+	if (error) {
+		return (
+			<div className='py-10 text-center text-red-500 font-bold border border-red-200 bg-red-50 m-10 rounded-xl'>
+				Mahsulotlarni yuklashda xatolik yuz berdi: {error}
+			</div>
+		)
+	}
+
+	if (products.length === 0) return null
+
+	return <ProductsClient products={products} />
+}
+
+export default function Products() {
+	return (
+		<Suspense
+			fallback={
+				<div className='w-full py-32 flex flex-col items-center justify-center gap-3 text-gray-400 bg-white border-t border-gray-200'>
+					<Loader2 className='w-8 h-8 animate-spin' />
+					<p className='font-montserrat text-sm'>Mahsulotlar yuklanmoqda...</p>
+				</div>
+			}
+		>
+			<ProductsData />
+		</Suspense>
+	)
+}

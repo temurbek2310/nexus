@@ -1,7 +1,6 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { connection } from 'next/server'
 import Category from '../models/category.model'
 import { connectToDatabase } from '../mongoose'
 
@@ -44,7 +43,6 @@ export async function updateCategory(id: string, data: Partial<ICategory>) {
 // 3. YANGLIK: Barcha kategoriyalarni olish (Qidiruv imkoniyati bilan)
 export async function getCategories({ query = '' }: { query?: string }) {
 	try {
-		await connection() // Next.js 16 dynamic render
 		await connectToDatabase()
 
 		const searchFilter = query

@@ -1,222 +1,174 @@
-'use client'
-
-import { Button } from '@/components/ui/button'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from '@/components/ui/select'
-import { mockProducts } from '@/lib/mock-data'
-import { Search, SlidersHorizontal } from 'lucide-react'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import qs from 'query-string'
-import { Suspense, useMemo, useState } from 'react'
-
-import { ProductCard } from '../_components/product-card'
-import { ShopPagination } from '../_components/shop-pagination'
-import { ShopSidebar } from '../_components/shop-sidebar'
+import { getCategories } from '@/lib/actions/category.actions'
+import { getProducts } from '@/lib/actions/product.actions'
+import ShopClient from '../_components/shop-client'
 
 const ITEMS_PER_PAGE = 15
 
-// SearchParams ishlatilganda Next.js qoidalariga ko'ra Suspense ishlatish tavsiya etiladi
-export default function ShopPage() {
-	return (
-		<Suspense fallback={<div className='min-h-screen bg-[#FAFAFA]' />}>
-			<ShopContent />
-		</Suspense>
-	)
+// 1. MANTIQNI TASHQARIGA OLIB CHIQAMIZ (try...catch shu yerda bo'ladi)
+async function fetchShopData(params: any) {
+	try {
+		const rawProducts = (await getProducts({})) as any[]
+		const rawCategories = (await getCategories({})) as any[]
+
+		// 1. Kategoriyalarni tayyorlash
+		const activeCategories = rawCategories.filter(c => c.status === 'Faol')
+		const formattedCategories = [
+			{ title: 'Barchasi', slug: 'barchasi' },
+			...activeCategories.map(c => ({
+				title: c.title,
+				slug: c.slug || c.title.toLowerCase(),
+			})),
+		]
+
+		// 2. Mahsulotlarni filtrlash
+		let validProducts = rawProducts.filter(p => p.status === 'Faol')
+
+		if (params.filterParam === 'sale') {
+			validProducts = validProducts.filter(
+				p => (p.discountPrice ?? 0) > 0 && p.discountPrice < p.price,
+			)
+		}
+
+		if (params.q) {
+			validProducts = validProducts.filter(p => {
+				const brandObj = p.specs?.find(
+					(s: any) =>
+						s.key.toLowerCase() === 'brend' || s.key.toLowerCase() === 'brand',
+				)
+				const brand = brandObj?.value.toLowerCase() || ''
+				return (
+					p.title.toLowerCase().includes(params.q) || brand.includes(params.q)
+				)
+			})
+		}
+
+		if (params.categoryParam !== 'barchasi') {
+			validProducts = validProducts.filter(p => {
+				const catSlug =
+					typeof p.category === 'object' ? p.category?.slug : p.category
+				return catSlug?.toLowerCase() === params.categoryParam
+			})
+		}
+
+		if (params.min > 0) {
+			validProducts = validProducts.filter(
+				p => (p.discountPrice || p.price) >= params.min,
+			)
+		}
+
+		if (params.max > 0) {
+			validProducts = validProducts.filter(
+				p => (p.discountPrice || p.price) <= params.max,
+			)
+		}
+
+		// 3. Tartiblash (Sorting)
+		validProducts.sort((a, b) => {
+			const priceA = a.discountPrice || a.price
+			const priceB = b.discountPrice || b.price
+
+			switch (params.sort) {
+				case 'price-asc':
+					return priceA - priceB
+				case 'price-desc':
+					return priceB - priceA
+				case 'name-asc':
+					return a.title.localeCompare(b.title)
+				case 'name-desc':
+					return b.title.localeCompare(a.title)
+				case 'newest':
+				default:
+					return b._id.toString().localeCompare(a._id.toString())
+			}
+		})
+
+		// 4. Paginatsiya
+		const totalPages = Math.ceil(validProducts.length / ITEMS_PER_PAGE)
+		const paginated = validProducts.slice(
+			(params.currentPage - 1) * ITEMS_PER_PAGE,
+			params.currentPage * ITEMS_PER_PAGE,
+		)
+
+		// 5. Formatlash
+		const formattedProducts = paginated.map(p => {
+			const brandObj = p.specs?.find(
+				(s: any) =>
+					s.key.toLowerCase() === 'brend' || s.key.toLowerCase() === 'brand',
+			)
+			return {
+				id: p._id.toString(),
+				brand: brandObj?.value || 'NEXUS',
+				name: p.title,
+				oldPrice: p.discountPrice ? p.price.toString() : null,
+				price: (p.discountPrice || p.price).toString(),
+				image:
+					p.images && p.images.length > 0 ? p.images[0] : '/placeholder.png',
+			}
+		})
+
+		return {
+			products: formattedProducts,
+			categories: formattedCategories,
+			totalCount: validProducts.length,
+			totalPages,
+			error: null,
+		}
+	} catch (error) {
+		console.error('Sahifani yuklashda xato:', error)
+		return {
+			products: [],
+			categories: [],
+			totalCount: 0,
+			totalPages: 0,
+			error: true,
+		}
+	}
 }
 
-function ShopContent() {
-	const router = useRouter()
-	const pathname = usePathname()
-	const searchParams = useSearchParams()
-
-	const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false)
+// 2. ASOSIY KOMPONENT (try...catch siz va toza JSX bilan)
+export default async function ShopPage({
+	searchParams,
+}: {
+	searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+	const params = await searchParams
 
 	// URL parametrlarini o'qish
-	const q = searchParams.get('q') || ''
-	const category = searchParams.get('category') || 'Barchasi'
-	const min = searchParams.get('min') || ''
-	const max = searchParams.get('max') || ''
-	const sort = searchParams.get('sort') || 'newest'
-	const currentPage = Number(searchParams.get('page')) || 1
-
-	// Filtrlash va Tartiblash
-	const filteredAndSortedProducts = useMemo(() => {
-		let result = [...mockProducts]
-
-		if (q) {
-			result = result.filter(
-				p =>
-					p.name.toLowerCase().includes(q.toLowerCase()) ||
-					p.brand.toLowerCase().includes(q.toLowerCase()),
-			)
-		}
-		// Barchasi so'zini ham katta-kichikligidan qat'iy nazar tekshiramiz
-		if (category && category.toLowerCase() !== 'barchasi') {
-			result = result.filter(
-				p => p.category.toLowerCase() === category.toLowerCase(),
-			)
-		}
-		if (min) {
-			result = result.filter(p => p.price >= Number(min))
-		}
-		if (max) {
-			result = result.filter(p => p.price <= Number(max))
-		}
-
-		switch (sort) {
-			case 'price-asc':
-				result.sort((a, b) => a.price - b.price)
-				break
-			case 'price-desc':
-				result.sort((a, b) => b.price - a.price)
-				break
-			case 'name-asc':
-				result.sort((a, b) => a.name.localeCompare(b.name))
-				break
-			case 'name-desc':
-				result.sort((a, b) => b.name.localeCompare(a.name))
-				break
-			case 'newest':
-			default:
-				result.sort(
-					(a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-				)
-				break
-		}
-
-		return result
-	}, [q, category, min, max, sort])
-
-	// Paginatsiya hisoblari
-	const totalPages = Math.ceil(
-		filteredAndSortedProducts.length / ITEMS_PER_PAGE,
-	)
-	const paginatedProducts = filteredAndSortedProducts.slice(
-		(currentPage - 1) * ITEMS_PER_PAGE,
-		currentPage * ITEMS_PER_PAGE,
-	)
-
-	// Sort ni yangilash (URL orqali)
-	const handleSortChange = (value: string | null) => {
-		const nextValue = value ?? 'newest'
-		const current = qs.parse(searchParams.toString())
-		const url = qs.stringifyUrl(
-			{ url: pathname, query: { ...current, sort: nextValue, page: '1' } },
-			{ skipNull: true, skipEmptyString: true },
-		)
-		router.push(url, { scroll: false })
+	const parsedParams = {
+		q: typeof params.q === 'string' ? params.q.toLowerCase() : '',
+		categoryParam:
+			typeof params.category === 'string'
+				? params.category.toLowerCase()
+				: 'barchasi',
+		min: typeof params.min === 'string' ? Number(params.min) : 0,
+		max: typeof params.max === 'string' ? Number(params.max) : 0,
+		sort: typeof params.sort === 'string' ? params.sort : 'newest',
+		filterParam: typeof params.filter === 'string' ? params.filter : '',
+		currentPage: typeof params.page === 'string' ? Number(params.page) : 1,
 	}
 
-	return (
-		<div className='min-h-screen bg-[#FAFAFA] pt-32 pb-24'>
-			<div className='max-w-[1600px] mx-auto px-6 sm:px-12 lg:px-24'>
-				{/* Sahifa Sarlavhasi */}
-				<div className='flex flex-col md:flex-row md:items-end justify-between mb-10 pb-8 border-b border-gray-200'>
-					<div>
-						<h1 className='font-space-grotesk text-4xl md:text-5xl font-bold tracking-tight text-black mb-4'>
-							Do'kon
-						</h1>
-						<p className='font-montserrat text-gray-500 text-sm md:text-base max-w-md text-balance'>
-							Eng so'nggi texnologiyalar va gadjetlar. Barcha mahsulotlar
-							original va kafolatlangan.
-						</p>
-					</div>
-				</div>
+	// Yordamchi funksiyani chaqiramiz
+	const { products, categories, totalCount, totalPages, error } =
+		await fetchShopData(parsedParams)
 
-				<div className='flex flex-col lg:flex-row gap-10 relative items-start'>
-					{/* Sidebar */}
-					<ShopSidebar
-						isMobileOpen={isMobileFilterOpen}
-						setMobileOpen={setIsMobileFilterOpen}
-					/>
-
-					<main className='lg:w-3/4 flex flex-col gap-6'>
-						{/* Top Bar */}
-						<div className='flex items-center justify-between bg-white p-4 rounded-2xl border border-gray-200 shadow-sm'>
-							<div className='flex items-center gap-4'>
-								<Button
-									variant='outline'
-									size='sm'
-									className='lg:hidden rounded-lg border-gray-200 flex items-center gap-2'
-									onClick={() => setIsMobileFilterOpen(true)}
-								>
-									<SlidersHorizontal className='size-4' />
-									Filtr
-								</Button>
-								<p className='font-montserrat text-sm text-gray-500'>
-									<span className='font-semibold text-black'>
-										{filteredAndSortedProducts.length}
-									</span>{' '}
-									ta mahsulot topildi
-								</p>
-							</div>
-
-							{/* Tartiblash */}
-							<div className='flex items-center gap-3'>
-								<span className='hidden sm:block font-montserrat text-sm text-gray-500'>
-									Tartiblash:
-								</span>
-								<Select value={sort} onValueChange={handleSortChange}>
-									<SelectTrigger className='w-[160px] h-10 bg-gray-50 border-gray-200 rounded-xl font-montserrat text-sm focus:ring-black'>
-										<SelectValue placeholder='Tanlang...' />
-									</SelectTrigger>
-									<SelectContent className='font-montserrat text-sm rounded-xl'>
-										<SelectItem value='newest'>Yangi qo'shilganlar</SelectItem>
-										<SelectItem value='price-asc'>Arzon - Qimmat</SelectItem>
-										<SelectItem value='price-desc'>Qimmat - Arzon</SelectItem>
-										<SelectItem value='name-asc'>
-											Alifbo bo'yicha (A-Z)
-										</SelectItem>
-										<SelectItem value='name-desc'>
-											Alifbo bo'yicha (Z-A)
-										</SelectItem>
-									</SelectContent>
-								</Select>
-							</div>
-						</div>
-
-						{/* Products Grid */}
-						{paginatedProducts.length > 0 ? (
-							<>
-								<div className='grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6'>
-									{paginatedProducts.map(product => (
-										<ProductCard key={product.id} product={product} />
-									))}
-								</div>
-
-								<ShopPagination
-									totalPages={totalPages}
-									currentPage={currentPage}
-								/>
-							</>
-						) : (
-							<div className='w-full flex flex-col items-center justify-center py-32 text-center rounded-[2rem] border border-dashed border-gray-300 bg-white'>
-								<div className='size-20 bg-gray-50 rounded-full flex items-center justify-center mb-6'>
-									<Search className='size-8 text-gray-400' />
-								</div>
-								<h3 className='font-space-grotesk text-2xl font-bold text-gray-900 mb-2'>
-									Mahsulot topilmadi
-								</h3>
-								<p className='font-montserrat text-gray-500 max-w-sm mb-6'>
-									Ushbu filtrlar bo'yicha hech qanday mahsulot topilmadi.
-									Iltimos, filtrlarni o'zgartirib qayta urinib ko'ring.
-								</p>
-								<Button
-									onClick={() => router.push(pathname)}
-									className='rounded-xl font-montserrat'
-								>
-									Filtrlarni tozalash
-								</Button>
-							</div>
-						)}
-					</main>
-				</div>
+	// Agar xato bo'lsa (Xato JSX ni try...catch ichida emas, bu yerda qaytaramiz)
+	if (error) {
+		return (
+			<div className='text-center py-32 text-red-500 font-bold'>
+				Ma'lumotlarni yuklashda xatolik yuz berdi.
 			</div>
-		</div>
+		)
+	}
+
+	// Xatosiz va muvaffaqiyatli Render
+	return (
+		<ShopClient
+			products={products}
+			categories={categories}
+			totalCount={totalCount}
+			totalPages={totalPages}
+			currentPage={parsedParams.currentPage}
+			currentSort={parsedParams.sort}
+		/>
 	)
 }

@@ -13,7 +13,6 @@ import { ArrowRight, Tag, Timer } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import * as React from 'react'
-// useRef olib tashlandi, o'rniga faqat useState ishlatamiz
 
 const discountCampaigns = [
 	{
@@ -25,7 +24,7 @@ const discountCampaigns = [
 		category: 'Drones',
 		image: '/drones.png',
 		color: 'from-orange-500 to-red-500',
-		link: '/discounts',
+		link: '/shop?filter=sale',
 	},
 	{
 		id: 2,
@@ -36,7 +35,7 @@ const discountCampaigns = [
 		category: 'Audio',
 		image: '/audio.png',
 		color: 'from-blue-500 to-cyan-500',
-		link: '/discounts',
+		link: '/shop?filter=sale',
 	},
 	{
 		id: 3,
@@ -47,7 +46,7 @@ const discountCampaigns = [
 		category: 'Stabilizers',
 		image: '/stabilizers.png',
 		color: 'from-emerald-500 to-green-500',
-		link: '/discounts',
+		link: '/shop?filter=sale',
 	},
 ]
 
@@ -55,8 +54,13 @@ export default function Hero() {
 	const [api, setApi] = React.useState<CarouselApi>()
 	const [current, setCurrent] = React.useState(0)
 
-	// ================= MUAMMO HAL QILINDI =================
-	// useRef o'rniga lazy useState ishlatildi. Bu React 19 da xato bermaydi va qayta render bo'lganda yo'qolib qolmaydi.
+	// TAYMER UCHUN STATE
+	const [timeLeft, setTimeLeft] = React.useState({
+		hours: 0,
+		minutes: 0,
+		seconds: 0,
+	})
+
 	const [plugin] = React.useState(() =>
 		Autoplay({ delay: 5000, stopOnInteraction: true }),
 	)
@@ -72,6 +76,39 @@ export default function Hero() {
 			api.off('select', onSelect)
 		}
 	}, [api])
+
+	// ================= HAQIQIY ISHLAYDIGAN TAYMER MANTIQI =================
+	React.useEffect(() => {
+		const calculateTimeLeft = () => {
+			const now = new Date()
+			// Ertangi kun yarim tun (00:00) ni hisoblash
+			const tomorrow = new Date(
+				now.getFullYear(),
+				now.getMonth(),
+				now.getDate() + 1,
+			)
+			const diff = tomorrow.getTime() - now.getTime()
+
+			return {
+				hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+				minutes: Math.floor((diff / 1000 / 60) % 60),
+				seconds: Math.floor((diff / 1000) % 60),
+			}
+		}
+
+		// Dastlabki qiymatni o'rnatamiz
+		setTimeLeft(calculateTimeLeft())
+
+		// Har 1 soniyada taymerni yangilab turamiz
+		const timer = setInterval(() => {
+			setTimeLeft(calculateTimeLeft())
+		}, 1000)
+
+		return () => clearInterval(timer)
+	}, [])
+
+	// Raqamlarni chiroyli formatlash (masalan 9 ni 09 ga aylantiradi)
+	const formatTime = (num: number) => num.toString().padStart(2, '0')
 
 	return (
 		<section className='pt-12 pb-16 border-b border-border overflow-hidden relative'>
@@ -97,8 +134,10 @@ export default function Hero() {
 							<span className='font-montserrat text-[10px] font-bold tracking-widest text-gray-400 uppercase'>
 								Aksiya tugashiga
 							</span>
-							<span className='font-space-grotesk text-lg font-bold text-black'>
-								12 : 45 : 00
+							{/* JONLI TAYMER EKRANGA CHIQARILDI */}
+							<span className='font-space-grotesk text-lg font-bold text-black tabular-nums'>
+								{formatTime(timeLeft.hours)} : {formatTime(timeLeft.minutes)} :{' '}
+								{formatTime(timeLeft.seconds)}
 							</span>
 						</div>
 					</div>
@@ -108,10 +147,10 @@ export default function Hero() {
 				<Carousel
 					setApi={setApi}
 					opts={{ align: 'start', loop: true }}
-					plugins={[plugin]} // .current olib tashlandi, bevosita plugin o'zi uzatildi
+					plugins={[plugin]}
 					className='w-full relative'
-					onMouseEnter={() => plugin.stop()} // .current olib tashlandi
-					onMouseLeave={() => plugin.reset()} // .current olib tashlandi
+					onMouseEnter={() => plugin.stop()}
+					onMouseLeave={() => plugin.reset()}
 				>
 					<CarouselContent>
 						{discountCampaigns.map((campaign, index) => (

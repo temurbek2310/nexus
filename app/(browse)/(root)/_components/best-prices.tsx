@@ -1,242 +1,133 @@
-'use client'
+import { getProducts } from '@/lib/actions/product.actions'
+import { Loader2 } from 'lucide-react'
+import { Suspense } from 'react'
+import BestPricesClient, { Product } from './BestPricesClient'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { useCartStore } from '@/store/useCartStore'
-import { ArrowRight, Check, ShoppingCart } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { useState } from 'react'
-
-// 1. Product uchun aniq TypeScript interfeysi
-interface Product {
-	id: number
-	brand: string
-	name: string
-	oldPrice: string
-	price: string
-	image: string
+// 1. TIPLAR (any larni o'rniga)
+interface IBackendProduct {
+	_id: { toString: () => string } | string
+	title: string
+	status: string
+	price: number
+	discountPrice?: number | null
+	images?: string[]
+	category?: { _id?: string | { toString: () => string } } | string | null
+	specs?: { key: string; value: string }[]
 }
 
-const products: Product[] = [
-	{
-		id: 1,
-		brand: 'VOLTIA',
-		name: 'PowerCore 65W',
-		oldPrice: '39',
-		price: '22',
-		image: '/powercore.png',
-	},
-	{
-		id: 2,
-		brand: 'HYDRON',
-		name: 'Smart Bottle',
-		oldPrice: '40',
-		price: '35',
-		image: '/bottle.png',
-	},
-	{
-		id: 3,
-		brand: 'NEXA',
-		name: 'PocketPower 10K',
-		oldPrice: '55',
-		price: '39',
-		image: '/pocketpower.png',
-	},
-	{
-		id: 4,
-		brand: 'HOMEY',
-		name: 'HOMEY Video Doorbell',
-		oldPrice: '99',
-		price: '79',
-		image: '/doorbell.png',
-	},
-	{
-		id: 5,
-		brand: 'HYDRON',
-		name: 'Smart Bottle',
-		oldPrice: '40',
-		price: '35',
-		image: '/bottle.png',
-	},
-	{
-		id: 6,
-		brand: 'NEXA',
-		name: 'PocketPower 10K',
-		oldPrice: '55',
-		price: '39',
-		image: '/pocketpower.png',
-	},
-	{
-		id: 7,
-		brand: 'HOMEY',
-		name: 'HOMEY Video Doorbell',
-		oldPrice: '99',
-		price: '79',
-		image: '/doorbell.png',
-	},
-]
+// 2. MANTIQ REACT KOMPONENTIDAN TASHQARIGA OLIB CHIQILDI
+// Bu Math.random() va try...catch errorlarini yo'qotadi
+async function fetchAndFormatBestPrices(): Promise<{
+	products: Product[]
+	error: string | null
+}> {
+	try {
+		const allProducts = (await getProducts({})) as IBackendProduct[]
 
-const getGridStyles = (index: number) => {
-	if (index === 0)
-		return 'lg:col-span-2 lg:row-span-2 min-h-[400px] lg:min-h-[550px]'
-	if (index === 5 || index === 6)
-		return 'sm:col-span-2 lg:col-span-2 lg:row-span-1 min-h-[300px]'
-	return 'col-span-1 row-span-1 min-h-[300px]'
-}
+		if (!allProducts || allProducts.length === 0) {
+			return { products: [], error: null }
+		}
 
-const BestPrices = () => {
-	const addItem = useCartStore(state => state.addItem)
-	const [addedItems, setAddedItems] = useState<Record<number, boolean>>({})
+		let valid = allProducts.filter(
+			p => p.status === 'Faol' && (p.discountPrice ?? 0) > 0,
+		)
 
-	// 2. product: any o'rniga product: Product ishlatildi
-	const handleAddToCart = (e: React.MouseEvent, product: Product) => {
-		e.preventDefault()
-		e.stopPropagation()
+		if (valid.length < 7) {
+			const others = allProducts.filter(
+				p => p.status === 'Faol' && !p.discountPrice,
+			)
+			valid = [...valid, ...others]
+		}
 
-		addItem({
-			id: product.id,
-			brand: product.brand,
-			name: product.name,
-			price: Number(product.price),
-			image: product.image,
-			quantity: 1, // 3. Quantity majburiy qo'shildi
+		// Aralashtirish
+		for (let i = valid.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1))
+			;[valid[i], valid[j]] = [valid[j], valid[i]]
+		}
+
+		const selected: IBackendProduct[] = []
+		const seenCategories = new Set<string>()
+
+		for (const p of valid) {
+			const catId =
+				typeof p.category === 'object' && p.category?._id
+					? p.category._id.toString()
+					: p.category?.toString() || 'no-category'
+
+			if (!seenCategories.has(catId)) {
+				selected.push(p)
+				seenCategories.add(catId)
+			}
+			if (selected.length === 7) break
+		}
+
+		if (selected.length < 7) {
+			for (const p of valid) {
+				if (!selected.find(s => s._id.toString() === p._id.toString())) {
+					selected.push(p)
+				}
+				if (selected.length === 7) break
+			}
+		}
+
+		const formattedProducts: Product[] = selected.map(p => {
+			const brandObj = p.specs?.find(
+				s => s.key.toLowerCase() === 'brend' || s.key.toLowerCase() === 'brand',
+			)
+			return {
+				id: p._id.toString(),
+				brand: brandObj?.value || 'NEXUS',
+				name: p.title,
+				oldPrice: p.discountPrice ? p.price.toString() : null,
+				price: (p.discountPrice || p.price).toString(),
+				image:
+					p.images && p.images.length > 0 ? p.images[0] : '/placeholder.png',
+			}
 		})
 
-		setAddedItems(prev => ({ ...prev, [product.id]: true }))
-		setTimeout(() => {
-			setAddedItems(prev => ({ ...prev, [product.id]: false }))
-		}, 2000)
+		return { products: formattedProducts, error: null }
+	} catch (err: unknown) {
+		console.error('BestPrices xatoligi:', err)
+		const errorMessage =
+			err instanceof Error ? err.message : "Noma'lum xatolik yuz berdi"
+		return { products: [], error: errorMessage }
 	}
-
-	return (
-		<section className='py-24 bg-white border-b border-gray-200'>
-			<div className='max-w-[1600px] mx-auto px-6 sm:px-12 lg:px-24'>
-				{/* Sarlavha qismi */}
-				<div className='flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6'>
-					<div>
-						<Badge
-							variant='outline'
-							className='mb-4 bg-gray-50 border-gray-200 text-black font-space-grotesk tracking-widest uppercase py-1 px-3'
-						>
-							Qaynoq takliflar
-						</Badge>
-						<h2 className='font-space-grotesk text-3xl md:text-4xl font-bold tracking-tight text-black'>
-							Eng yaxshi narxlar
-						</h2>
-						<p className='font-montserrat text-gray-500 mt-3 max-w-md text-sm text-balance'>
-							Premium gadjetlar va uskunalar endi ancha arzon narxlarda.
-							Chegirmalar vaqti chegaralangan, hoziroq xarid qiling.
-						</p>
-					</div>
-
-					<Button
-						asChild
-						variant='ghost'
-						className='group font-montserrat text-sm font-medium text-black hover:bg-transparent hover:text-gray-600 px-0'
-					>
-						<Link href='/browse?filter=sale'>
-							Barcha chegirmalar
-							<ArrowRight className='size-4 ml-2 group-hover:translate-x-1 transition-transform' />
-						</Link>
-					</Button>
-				</div>
-
-				{/* Bento Grid */}
-				<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 auto-rows-fr'>
-					{products.map((product, index) => {
-						const discountPercent = Math.round(
-							((Number(product.oldPrice) - Number(product.price)) /
-								Number(product.oldPrice)) *
-								100,
-						)
-						const isFeatured = index === 0
-						const isAdded = addedItems[product.id]
-
-						return (
-							<Link
-								href={`/shop/${product.id}`}
-								key={product.id}
-								className={cn(
-									'group relative flex flex-col rounded-3xl bg-white border border-gray-200 overflow-hidden hover:border-gray-300 hover:shadow-xl transition-all duration-300',
-									getGridStyles(index),
-								)}
-							>
-								{isFeatured && (
-									<div className='absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-size-[20px_20px] pointer-events-none'></div>
-								)}
-
-								<div className='absolute top-0 left-0 w-full p-5 md:p-6 flex justify-between items-start z-20 pointer-events-none'>
-									<span className='font-space-grotesk text-xs md:text-sm font-bold tracking-widest text-gray-400 uppercase'>
-										{product.brand}
-									</span>
-									<Badge className='bg-black text-white hover:bg-gray-800 font-montserrat text-xs pointer-events-auto rounded-md px-2 py-0.5'>
-										-{discountPercent}%
-									</Badge>
-								</div>
-
-								<div className='relative flex-1 w-full flex items-center justify-center p-8 mt-8 pointer-events-none'>
-									{isFeatured && (
-										<div className='absolute inset-0 bg-gray-100 rounded-full blur-[80px] opacity-0 group-hover:opacity-50 transition-opacity duration-700 w-3/4 h-3/4 m-auto'></div>
-									)}
-									<Image
-										src={product.image}
-										alt={product.name}
-										fill
-										className={cn(
-											'object-contain p-8 md:p-12 drop-shadow-lg group-hover:scale-105 transition-transform duration-700 ease-out',
-											isFeatured ? 'p-12 md:p-20' : 'p-8',
-										)}
-										sizes='(max-width: 768px) 100vw, 50vw'
-									/>
-								</div>
-
-								<div className='relative z-20 p-5 md:p-6 bg-white/80 backdrop-blur-md border-t border-gray-100 flex items-end justify-between mt-auto'>
-									<div className='flex flex-col gap-1 pointer-events-none'>
-										<h3
-											className={cn(
-												'font-space-grotesk font-bold text-gray-900 line-clamp-1',
-												isFeatured ? 'text-xl md:text-2xl' : 'text-lg',
-											)}
-										>
-											{product.name}
-										</h3>
-										<div className='flex items-center gap-2 font-montserrat'>
-											<span className='text-gray-400 line-through text-xs md:text-sm'>
-												${product.oldPrice}
-											</span>
-											<span className='text-black font-semibold text-base md:text-lg'>
-												${product.price}
-											</span>
-										</div>
-									</div>
-
-									<Button
-										onClick={e => handleAddToCart(e, product)}
-										size='icon'
-										variant='outline'
-										className={cn(
-											'size-10 shrink-0 rounded-full transition-all duration-300 shadow-sm z-30',
-											isAdded
-												? 'bg-green-500 text-white border-green-500'
-												: 'border-gray-200 hover:border-black hover:bg-black hover:text-white',
-										)}
-									>
-										{isAdded ? (
-											<Check className='size-4 animate-in zoom-in' />
-										) : (
-											<ShoppingCart className='size-4' />
-										)}
-									</Button>
-								</div>
-							</Link>
-						)
-					})}
-				</div>
-			</div>
-		</section>
-	)
 }
 
-export default BestPrices
+// 3. ASOSIY KOMPONENT (Toza holatda)
+const BestPricesData = async () => {
+	// Try...catch JSX ichida emas, tashqaridagi funksiyada bajarildi
+	const { products, error } = await fetchAndFormatBestPrices()
+
+	// Agar xatolik bo'lsa
+	if (error) {
+		return (
+			<div className='py-10 text-center text-red-500 font-bold border border-red-200 bg-red-50 m-10 rounded-xl'>
+				Qaynoq takliflarni yuklashda xatolik yuz berdi: {error}
+			</div>
+		)
+	}
+
+	// Agar ma'lumot bo'lmasa
+	if (products.length === 0) return null
+
+	// Muvaffaqiyatli holat
+	return <BestPricesClient products={products} />
+}
+
+export default function BestPrices() {
+	return (
+		<Suspense
+			fallback={
+				<div className='w-full py-32 flex flex-col items-center justify-center gap-3 text-gray-400 bg-white border-b border-gray-200'>
+					<Loader2 className='w-8 h-8 animate-spin' />
+					<p className='font-montserrat text-sm'>
+						Qaynoq takliflar yuklanmoqda...
+					</p>
+				</div>
+			}
+		>
+			<BestPricesData />
+		</Suspense>
+	)
+}

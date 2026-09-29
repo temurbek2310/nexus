@@ -13,6 +13,7 @@ import {
 	Tag,
 	Trash2,
 } from 'lucide-react'
+import Image from 'next/image'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import ProductSheet from './ProductSheet'
@@ -218,7 +219,7 @@ export default function ProductsClient({
 					</div>
 				</div>
 
-				<div className='overflow-x-auto min-h-[480px]'>
+				<div className='overflow-x-auto min-h-120'>
 					<table className='w-full text-left border-collapse'>
 						<thead>
 							<tr className='bg-gray-50/50 border-b border-gray-100 text-gray-500'>
@@ -227,6 +228,10 @@ export default function ProductsClient({
 								</th>
 								<th className='font-montserrat text-xs font-semibold uppercase tracking-wider py-4 px-6'>
 									Mahsulot
+								</th>
+								{/* YANGLIK: Ombordagi soni ustuni */}
+								<th className='font-montserrat text-xs font-semibold uppercase tracking-wider py-4 px-6'>
+									Omborda
 								</th>
 								<th className='font-montserrat text-xs font-semibold uppercase tracking-wider py-4 px-6'>
 									Holat
@@ -258,12 +263,14 @@ export default function ProductsClient({
 										>
 											{/* Rasm */}
 											<td className='py-4 px-6'>
-												<div className='w-12 h-12 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden'>
+												<div className='relative w-12 h-12 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden'>
 													{firstImage ? (
-														<img
+														<Image
 															src={firstImage}
 															alt={product.title}
-															className='w-full h-full object-cover'
+															fill
+															sizes='(max-width: 768px) 48px, 48px'
+															className='object-cover'
 														/>
 													) : (
 														<ImageIcon className='w-5 h-5 text-gray-400' />
@@ -274,13 +281,25 @@ export default function ProductsClient({
 											{/* Nomi va Kategoriya nomi */}
 											<td className='py-4 px-6'>
 												<div className='flex flex-col'>
-													<span className='font-space-grotesk text-sm font-bold text-gray-900 max-w-[300px] truncate'>
+													<span className='font-space-grotesk text-sm font-bold text-gray-900 max-w-75 truncate'>
 														{product.title}
 													</span>
-													<span className='text-[11px] font-semibold text-gray-400 mt-0.5 uppercase tracking-wider'>
+													<span className='flex items-center text-[11px] font-semibold text-gray-400 mt-1 uppercase tracking-wider'>
+														<Tag className='w-3 h-3 mr-1.5' />
 														{product.category?.title || 'Kategoriyasiz'}
 													</span>
 												</div>
+											</td>
+
+											{/* YANGLIK: Ombordagi soni */}
+											<td className='py-4 px-6 whitespace-nowrap'>
+												<span
+													className={`font-space-grotesk text-sm font-bold ${
+														product.stock <= 5 ? 'text-red-500' : 'text-black'
+													}`}
+												>
+													{product.stock || 0} ta
+												</span>
 											</td>
 
 											{/* Holati */}
@@ -296,7 +315,6 @@ export default function ProductsClient({
 											{/* Narxi */}
 											<td className='py-4 px-6 text-right whitespace-nowrap'>
 												<div className='flex flex-col items-end'>
-													{/* Joriy (yangi yoki oddiy) narx HAR DOIM to'q qora bo'ladi */}
 													<span className='font-space-grotesk text-sm font-bold text-gray-900'>
 														$
 														{(hasDiscount
@@ -306,8 +324,6 @@ export default function ProductsClient({
 															minimumFractionDigits: 2,
 														})}
 													</span>
-
-													{/* Eski narx (chizib tashlangan) faqat chegirma bo'lsa chiqadi */}
 													{hasDiscount && (
 														<span className='text-[11px] font-semibold text-gray-400 line-through mt-0.5 bg-gray-100 px-1.5 py-0.5 rounded-md'>
 															$
@@ -345,8 +361,9 @@ export default function ProductsClient({
 								})
 							) : (
 								<tr>
+									{/* YANGLIK: colSpan 5 dan 6 ga o'zgartirildi, chunki yangi ustun qo'shildi */}
 									<td
-										colSpan={5}
+										colSpan={6}
 										className='py-20 text-center text-sm text-gray-500 font-medium'
 									>
 										{searchTerm

@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { categories } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
 import { Search, X } from 'lucide-react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
@@ -10,11 +9,13 @@ import qs from 'query-string'
 import { useCallback, useEffect, useState } from 'react'
 
 interface ShopSidebarProps {
+	categories: { title: string; slug: string }[]
 	isMobileOpen: boolean
 	setMobileOpen: (val: boolean) => void
 }
 
 export const ShopSidebar = ({
+	categories,
 	isMobileOpen,
 	setMobileOpen,
 }: ShopSidebarProps) => {
@@ -22,25 +23,21 @@ export const ShopSidebar = ({
 	const pathname = usePathname()
 	const searchParams = useSearchParams()
 
-	// Hozirgi URL dagi qiymatlarni o'qib olish
-	const currentCategory = searchParams.get('category') || 'Barchasi'
+	const currentCategory = searchParams.get('category') || 'barchasi'
 	const currentQuery = searchParams.get('q') || ''
 	const currentMin = searchParams.get('min') || ''
 	const currentMax = searchParams.get('max') || ''
+	const currentFilter = searchParams.get('filter') || '' // YANGLIK: filter o'qiladi
 
-	// Boshqariluvchi (Controlled) State'lar
 	const [localQuery, setLocalQuery] = useState(currentQuery)
 	const [localMin, setLocalMin] = useState(currentMin)
 	const [localMax, setLocalMax] = useState(currentMax)
 
-	// ================= XATO 2 VA 3 HAL QILINDI =================
-	// Funksiya yuqoriga olib chiqildi va `useCallback` ga o'raldi
 	const updateQuery = useCallback(
 		(key: string, value: string | null) => {
 			const current = qs.parse(searchParams.toString())
 			const newQuery = { ...current, [key]: value }
 
-			// Boshqa filtr bosilsa, sahifani 1 ga qaytaramiz
 			if (key !== 'page') newQuery.page = '1'
 
 			const url = qs.stringifyUrl(
@@ -49,28 +46,35 @@ export const ShopSidebar = ({
 			)
 			router.push(url, { scroll: false })
 		},
-		[pathname, router, searchParams], // Funksiya ishlashi uchun kerakli narsalar qo'shildi
+		[pathname, router, searchParams],
 	)
 
-	// Qidiruv uchun Debounce (Foydalanuvchi yozishni to'xtatgach 500ms dan keyin URL o'zgaradi)
 	useEffect(() => {
 		const timer = setTimeout(() => {
-			// Faqatgina local state URL'dagidan farq qilsagina yangilaymiz
-			if (localQuery !== currentQuery) {
-				updateQuery('q', localQuery)
-			}
+			if (localQuery !== currentQuery) updateQuery('q', localQuery)
 		}, 500)
 		return () => clearTimeout(timer)
-	}, [localQuery, currentQuery, updateQuery]) // <-- updateQuery ham qavs ichiga (dependency) qo'shildi
+	}, [localQuery, currentQuery, updateQuery])
 
-	// ================= XATO 1 HAL QILINDI =================
-	// Cascading render keltirib chiqaradigan useEffect o'chirib tashlandi.
-	// Inputlar faqat "Filtrlarni tozalash" bosilganda tozalanishi uchun state'lar to'g'ridan to'g'ri shu yerda bo'shatildi.
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			if (localMin !== currentMin) updateQuery('min', localMin)
+		}, 600)
+		return () => clearTimeout(timer)
+	}, [localMin, currentMin, updateQuery])
+
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			if (localMax !== currentMax) updateQuery('max', localMax)
+		}, 600)
+		return () => clearTimeout(timer)
+	}, [localMax, currentMax, updateQuery])
+
 	const clearFilters = () => {
 		setLocalQuery('')
 		setLocalMin('')
 		setLocalMax('')
-		router.push(pathname, { scroll: false })
+		router.push(pathname, { scroll: false }) // Bu barcha parametrlarni tozalab yuboradi
 		setMobileOpen(false)
 	}
 
@@ -95,7 +99,26 @@ export const ShopSidebar = ({
 				</Button>
 			</div>
 
-			{/* Qidiruv */}
+			{/* YANGLIK: Qaynoq takliflar (Chegirmalar) tugmasi */}
+			<div className='flex flex-col gap-3'>
+				<h3 className='font-space-grotesk text-sm font-bold tracking-widest uppercase text-gray-900'>
+					Maxsus
+				</h3>
+				<button
+					onClick={() =>
+						updateQuery('filter', currentFilter === 'sale' ? null : 'sale')
+					}
+					className={cn(
+						'text-left px-4 py-3 rounded-xl font-montserrat text-sm transition-all duration-300 border',
+						currentFilter === 'sale'
+							? 'bg-red-50 border-red-200 text-red-600 font-bold shadow-sm'
+							: 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50',
+					)}
+				>
+					🔥 Faqat chegirmadagilar
+				</button>
+			</div>
+
 			<div className='flex flex-col gap-3'>
 				<h3 className='font-space-grotesk text-sm font-bold tracking-widest uppercase text-gray-900'>
 					Qidiruv
@@ -111,34 +134,28 @@ export const ShopSidebar = ({
 				</div>
 			</div>
 
-			{/* Kategoriyalar */}
 			<div className='flex flex-col gap-3'>
 				<h3 className='font-space-grotesk text-sm font-bold tracking-widest uppercase text-gray-900'>
 					Kategoriya
 				</h3>
 				<div className='flex flex-col gap-1'>
-					{categories.map(cat => {
-						const catSlug = cat.toLowerCase()
-
-						return (
-							<button
-								key={cat}
-								onClick={() => updateQuery('category', catSlug)}
-								className={cn(
-									'text-left px-4 py-2.5 rounded-lg font-montserrat text-sm transition-all duration-300',
-									currentCategory.toLowerCase() === catSlug
-										? 'bg-black text-white font-medium shadow-md'
-										: 'text-gray-600 hover:bg-gray-100',
-								)}
-							>
-								{cat}
-							</button>
-						)
-					})}
+					{categories.map(cat => (
+						<button
+							key={cat.slug}
+							onClick={() => updateQuery('category', cat.slug)}
+							className={cn(
+								'text-left px-4 py-2.5 rounded-lg font-montserrat text-sm transition-all duration-300',
+								currentCategory === cat.slug
+									? 'bg-black text-white font-medium shadow-md'
+									: 'text-gray-600 hover:bg-gray-100',
+							)}
+						>
+							{cat.title}
+						</button>
+					))}
 				</div>
 			</div>
 
-			{/* Narx oralig'i */}
 			<div className='flex flex-col gap-3'>
 				<h3 className='font-space-grotesk text-sm font-bold tracking-widest uppercase text-gray-900'>
 					Narx ($)
@@ -150,7 +167,6 @@ export const ShopSidebar = ({
 						className='h-11 bg-white border-gray-200 rounded-xl'
 						value={localMin}
 						onChange={e => setLocalMin(e.target.value)}
-						onBlur={() => updateQuery('min', localMin)}
 					/>
 					<span className='text-gray-400'>-</span>
 					<Input
@@ -159,7 +175,6 @@ export const ShopSidebar = ({
 						className='h-11 bg-white border-gray-200 rounded-xl'
 						value={localMax}
 						onChange={e => setLocalMax(e.target.value)}
-						onBlur={() => updateQuery('max', localMax)}
 					/>
 				</div>
 			</div>

@@ -12,6 +12,7 @@ import {
 	Search,
 	Trash2,
 } from 'lucide-react'
+import Image from 'next/image'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import CategorySheet from './CategorySheet'
@@ -208,24 +209,34 @@ export default function CategoriesClient({
 											className='group hover:bg-gray-50/50 transition-colors'
 										>
 											<td className='py-4 px-6'>
-												<div className='w-14 h-14 rounded-[14px] bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden shadow-sm'>
+												<div className='relative w-14 h-14 rounded-[14px] bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden shadow-sm'>
 													{cat.image ? (
-														<img
+														<Image
 															src={cat.image}
 															alt={cat.title}
-															className='w-full h-full object-cover'
+															fill
+															sizes='(max-width: 768px) 56px, 56px'
+															className='object-cover'
 														/>
 													) : (
 														<ImageIcon className='w-5 h-5 text-gray-400' />
 													)}
 												</div>
 											</td>
-											<td className='py-4 px-6'>
-												<div className='flex flex-col'>
+											<td className='py-4 px-6 max-w-[200px] lg:max-w-[300px]'>
+												<div className='flex flex-col items-start'>
 													<span className='font-space-grotesk text-base font-bold text-gray-900'>
 														{cat.title}
 													</span>
-													<span className='flex items-center text-xs font-mono text-gray-400 mt-1 hover:text-black transition-colors cursor-pointer w-fit'>
+													{cat.description && (
+														<span
+															className='font-montserrat text-[13px] text-gray-500 mt-0.5 line-clamp-1 text-pretty'
+															title={cat.description}
+														>
+															{cat.description}
+														</span>
+													)}
+													<span className='flex items-center text-[11px] font-mono text-gray-500 mt-2 hover:text-black transition-colors cursor-pointer w-fit bg-gray-100/70 px-2 py-0.5 rounded-md border border-gray-200/50'>
 														<LinkIcon className='w-3 h-3 mr-1' />/{cat.slug}
 													</span>
 												</div>

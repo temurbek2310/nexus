@@ -3,63 +3,51 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useCartStore } from '@/store/useCartStore'
 import { Check, ShoppingCart } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 
-// Zustand store ni import qilamiz (manzilni o'zingizning papkangizga moslang)
-import { useCartStore } from '@/store/useCartStore'
-
 interface ProductCardProps {
 	product: {
-		id: number
+		id: string
 		brand: string
 		name: string
-		price: number
-		oldPrice: number
+		price: string
+		oldPrice: string | null
 		image: string
 	}
 }
 
 export const ProductCard = ({ product }: ProductCardProps) => {
-	// Store'dan addItem funksiyasini olamiz
-	const addItem = useCartStore(
-		(
-			state: Parameters<typeof useCartStore>[0] extends (
-				state: infer S,
-			) => unknown
-				? S
-				: never,
-		) => state.addItem,
-	)
-
-	// Savatga qo'shilganini vizual ko'rsatish uchun kichik state
+	const addItem = useCartStore(state => state.addItem)
 	const [isAdded, setIsAdded] = useState(false)
 
-	const discountPercent = Math.round(
-		((product.oldPrice - product.price) / product.oldPrice) * 100,
-	)
+	let discountPercent = 0
+	if (product.oldPrice) {
+		discountPercent = Math.round(
+			((Number(product.oldPrice) - Number(product.price)) /
+				Number(product.oldPrice)) *
+				100,
+		)
+	}
 
-	// Savatga qo'shish funksiyasi
 	const handleAddToCart = (e: React.MouseEvent) => {
-		e.preventDefault() // Kartani bosganda sahifa o'zgarib ketishini to'xtatadi
+		e.preventDefault()
 		e.stopPropagation()
 
-		// Store'ga yuboriladigan ma'lumot
 		addItem({
 			id: product.id,
 			brand: product.brand,
 			name: product.name,
-			price: product.price,
+			price: Number(product.price),
 			image: product.image,
+			quantity: 1,
 		})
 
-		// Mijozga qo'shilganini bildirish uchun tugmani 2 soniyaga "Check" belgisiga o'zgartiramiz
 		setIsAdded(true)
-		setTimeout(() => {
-			setIsAdded(false)
-		}, 2000)
+		setTimeout(() => setIsAdded(false), 2000)
 	}
 
 	return (
@@ -94,24 +82,25 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 						{product.name}
 					</h3>
 					<div className='flex items-center gap-2 font-montserrat'>
-						<span className='text-gray-400 line-through text-xs'>
-							${product.oldPrice}
-						</span>
+						{product.oldPrice && (
+							<span className='text-gray-400 line-through text-xs'>
+								${product.oldPrice}
+							</span>
+						)}
 						<span className='text-black font-bold text-lg'>
 							${product.price}
 						</span>
 					</div>
 				</div>
 
-				{/* Savatga qo'shish tugmasi */}
 				<Button
 					onClick={handleAddToCart}
 					size='icon'
 					variant='outline'
 					className={cn(
-						'size-10 shrink-0 rounded-full transition-all shadow-sm group-hover:shadow-md',
+						'size-10 shrink-0 rounded-full transition-all shadow-sm group-hover:shadow-md z-30',
 						isAdded
-							? 'bg-green-500 text-white border-green-500 hover:bg-green-600 hover:text-white'
+							? 'bg-green-500 text-white border-green-500 hover:bg-green-600'
 							: 'border-gray-200 hover:border-black hover:bg-black hover:text-white',
 					)}
 				>
