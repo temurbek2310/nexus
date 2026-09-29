@@ -9,7 +9,7 @@ const CtaSection = () => {
 				{/* Asosiy qop-qora CTA karta */}
 				<div className='relative rounded-[2rem] bg-[#0a0a0a] text-white overflow-hidden border border-white/10 flex flex-col items-center text-center px-6 py-16 md:py-24 z-10 shadow-2xl'>
 					{/* Vercel Glow va Setka effektlari */}
-					<div className='absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none'></div>
+					<div className='absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-size-[32px_32px] pointer-events-none'></div>
 					<div className='absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-white/10 rounded-[100%] blur-[120px] pointer-events-none'></div>
 
 					<div className='relative z-20 flex flex-col items-center max-w-2xl'>
@@ -37,7 +37,7 @@ const CtaSection = () => {
 						{/* VERCEL CREATIVE BUTTON */}
 						<div className='relative group'>
 							{/* Tugma orqasidagi porlovchi effekt (Glow) */}
-							<div className='absolute -inset-1 bg-gradient-to-r from-white/40 via-white/10 to-white/40 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition duration-700 pointer-events-none'></div>
+							<div className='absolute -inset-1 bg-linear-to-r from-white/40 via-white/10 to-white/40 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition duration-700 pointer-events-none'></div>
 
 							<Button
 								asChild
@@ -51,7 +51,7 @@ const CtaSection = () => {
 									className='flex items-center gap-3'
 								>
 									{/* Tugma ustidan o'tadigan yaltiroq chiziq effekti */}
-									<div className='absolute inset-0 -translate-x-[150%] bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none skew-x-[-20deg]'></div>
+									<div className='absolute inset-0 -translate-x-[150%] bg-linear-to-r from-transparent via-white/10 to-transparent group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none skew-x-[-20deg]'></div>
 
 									<span>Telegramda qo'shilish</span>
 

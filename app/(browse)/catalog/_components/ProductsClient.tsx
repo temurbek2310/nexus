@@ -48,6 +48,7 @@ export default function ProductsClient({ products }: ProductsClientProps) {
 			brand: product.brand,
 			name: product.name,
 			price: Number(product.price),
+			oldPrice: product.oldPrice ? Number(product.oldPrice) : undefined,
 			image: product.image,
 			quantity: 1,
 		})
@@ -106,7 +107,7 @@ export default function ProductsClient({ products }: ProductsClientProps) {
 								)}
 							>
 								{isFeatured && (
-									<div className='absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none'></div>
+									<div className='absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-size-[20px_20px] pointer-events-none'></div>
 								)}
 
 								<div className='absolute top-0 left-0 w-full p-5 md:p-6 flex justify-between items-start z-20 pointer-events-none'>

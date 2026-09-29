@@ -6,6 +6,7 @@ export interface CartItem {
 	brand: string
 	name: string
 	price: number
+	oldPrice?: number | null
 	image: string
 	quantity: number
 }

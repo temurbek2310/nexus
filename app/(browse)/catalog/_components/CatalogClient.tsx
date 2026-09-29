@@ -85,7 +85,7 @@ export default function CatalogClient({ categories }: CatalogClientProps) {
 												)}
 											>
 												{isDark && (
-													<div className='absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none'></div>
+													<div className='absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-size-[32px_32px] pointer-events-none'></div>
 												)}
 
 												<div className='relative z-20 p-8 flex justify-between items-start pointer-events-none'>
@@ -125,13 +125,13 @@ export default function CatalogClient({ categories }: CatalogClientProps) {
 													</div>
 												</div>
 
-												<div className='relative z-20 mt-auto p-8 flex items-end justify-between border-t border-transparent transition-colors duration-500 bg-gradient-to-t from-black/60 to-transparent'>
+												<div className='relative z-20 mt-auto p-8 flex items-end justify-between border-t border-transparent transition-colors duration-500 bg-linear-to-t from-black/60 to-transparent'>
 													<div
 														className={cn(
 															'absolute inset-0 transition-opacity duration-500',
 															isDark
-																? 'bg-gradient-to-t from-black via-black/80 to-transparent'
-																: 'bg-gradient-to-t from-white via-white/90 to-transparent opacity-0 group-hover:opacity-100',
+																? 'bg-linear-to-t from-black via-black/80 to-transparent'
+																: 'bg-linear-to-t from-white via-white/90 to-transparent opacity-0 group-hover:opacity-100',
 														)}
 													></div>
 													<p

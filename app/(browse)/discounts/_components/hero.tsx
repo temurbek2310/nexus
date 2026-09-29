@@ -50,16 +50,30 @@ const discountCampaigns = [
 	},
 ]
 
+// 1. Taymer mantiqi tashqariga olib chiqildi (ESLint xatosini yo'qotadi)
+const calculateTimeLeft = () => {
+	const now = new Date()
+	const tomorrow = new Date(
+		now.getFullYear(),
+		now.getMonth(),
+		now.getDate() + 1,
+	)
+	const diff = tomorrow.getTime() - now.getTime()
+
+	return {
+		hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+		minutes: Math.floor((diff / 1000 / 60) % 60),
+		seconds: Math.floor((diff / 1000) % 60),
+	}
+}
+
 export default function Hero() {
 	const [api, setApi] = React.useState<CarouselApi>()
 	const [current, setCurrent] = React.useState(0)
 
-	// TAYMER UCHUN STATE
-	const [timeLeft, setTimeLeft] = React.useState({
-		hours: 0,
-		minutes: 0,
-		seconds: 0,
-	})
+	// Taymer va Hydration uchun State
+	const [timeLeft, setTimeLeft] = React.useState(calculateTimeLeft)
+	const [isMounted, setIsMounted] = React.useState(false)
 
 	const [plugin] = React.useState(() =>
 		Autoplay({ delay: 5000, stopOnInteraction: true }),
@@ -77,29 +91,9 @@ export default function Hero() {
 		}
 	}, [api])
 
-	// ================= HAQIQIY ISHLAYDIGAN TAYMER MANTIQI =================
+	// 2. Toza Effect (Faqat interval ishlaydi, darhol setState chaqirilmaydi)
 	React.useEffect(() => {
-		const calculateTimeLeft = () => {
-			const now = new Date()
-			// Ertangi kun yarim tun (00:00) ni hisoblash
-			const tomorrow = new Date(
-				now.getFullYear(),
-				now.getMonth(),
-				now.getDate() + 1,
-			)
-			const diff = tomorrow.getTime() - now.getTime()
-
-			return {
-				hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
-				minutes: Math.floor((diff / 1000 / 60) % 60),
-				seconds: Math.floor((diff / 1000) % 60),
-			}
-		}
-
-		// Dastlabki qiymatni o'rnatamiz
-		setTimeLeft(calculateTimeLeft())
-
-		// Har 1 soniyada taymerni yangilab turamiz
+		setIsMounted(true)
 		const timer = setInterval(() => {
 			setTimeLeft(calculateTimeLeft())
 		}, 1000)
@@ -107,7 +101,6 @@ export default function Hero() {
 		return () => clearInterval(timer)
 	}, [])
 
-	// Raqamlarni chiroyli formatlash (masalan 9 ni 09 ga aylantiradi)
 	const formatTime = (num: number) => num.toString().padStart(2, '0')
 
 	return (
@@ -134,10 +127,10 @@ export default function Hero() {
 							<span className='font-montserrat text-[10px] font-bold tracking-widest text-gray-400 uppercase'>
 								Aksiya tugashiga
 							</span>
-							{/* JONLI TAYMER EKRANGA CHIQARILDI */}
 							<span className='font-space-grotesk text-lg font-bold text-black tabular-nums'>
-								{formatTime(timeLeft.hours)} : {formatTime(timeLeft.minutes)} :{' '}
-								{formatTime(timeLeft.seconds)}
+								{isMounted
+									? `${formatTime(timeLeft.hours)} : ${formatTime(timeLeft.minutes)} : ${formatTime(timeLeft.seconds)}`
+									: '00 : 00 : 00'}
 							</span>
 						</div>
 					</div>
@@ -155,8 +148,8 @@ export default function Hero() {
 					<CarouselContent>
 						{discountCampaigns.map((campaign, index) => (
 							<CarouselItem key={campaign.id} className='w-full'>
-								<div className='group relative w-full h-[450px] md:h-[500px] bg-[#050505] rounded-[32px] md:rounded-[48px] overflow-hidden flex flex-col md:flex-row items-center justify-between p-8 md:p-16'>
-									{/* Katta Chegirma Yozuvi */}
+								{/* 3. Tailwind v4 classlariga moslandi (h-112.5, md:h-125) */}
+								<div className='group relative w-full h-112.5 md:h-125 bg-[#050505] rounded-[32px] md:rounded-[48px] overflow-hidden flex flex-col md:flex-row items-center justify-between p-8 md:p-16'>
 									<div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-0 select-none w-full text-center'>
 										<span
 											className='font-space-grotesk text-[120px] md:text-[250px] font-black text-transparent opacity-10 group-hover:scale-110 transition-transform duration-1000 ease-out'
@@ -166,10 +159,10 @@ export default function Hero() {
 										</span>
 									</div>
 
-									{/* Chap Tomon: Matnlar */}
 									<div className='relative z-20 flex flex-col items-start w-full md:w-1/2 mb-10 md:mb-0'>
+										{/* bg-linear-to-r qilib o'zgartirildi */}
 										<Badge
-											className={`font-montserrat text-xs font-bold uppercase tracking-wider mb-6 bg-gradient-to-r ${campaign.color} text-white border-none px-4 py-1.5`}
+											className={`font-montserrat text-xs font-bold uppercase tracking-wider mb-6 bg-linear-to-r ${campaign.color} text-white border-none px-4 py-1.5`}
 										>
 											{campaign.discount} CHEGIRMA
 										</Badge>
@@ -193,12 +186,13 @@ export default function Hero() {
 										</Button>
 									</div>
 
-									{/* O'ng Tomon: Rasm */}
 									<div className='relative z-10 w-full md:w-1/2 h-48 md:h-full flex items-center justify-center transition-transform duration-700 ease-out group-hover:scale-110 group-hover:-rotate-3'>
+										{/* bg-linear-to-tr qilib o'zgartirildi */}
 										<div
-											className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-gradient-to-tr ${campaign.color} blur-[80px] opacity-20 group-hover:opacity-40 transition-opacity duration-700 rounded-full`}
+											className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-linear-to-tr ${campaign.color} blur-[80px] opacity-20 group-hover:opacity-40 transition-opacity duration-700 rounded-full`}
 										></div>
-										<div className='relative w-full h-[120%] max-w-[400px]'>
+										{/* max-w-100 qilib o'zgartirildi */}
+										<div className='relative w-full h-[120%] max-w-100'>
 											<Image
 												src={campaign.image}
 												alt={campaign.title}
@@ -214,7 +208,6 @@ export default function Hero() {
 						))}
 					</CarouselContent>
 
-					{/* Pagination chiziqlari */}
 					<div className='flex items-center justify-center space-x-2 mt-8'>
 						{discountCampaigns.map((_, index) => (
 							<button

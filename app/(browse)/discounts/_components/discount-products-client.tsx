@@ -13,7 +13,7 @@ export interface DiscountProduct {
 	id: string
 	brand: string
 	name: string
-	oldPrice: number
+	oldPrice: number | null
 	price: number
 	image: string
 	tag?: string
@@ -50,6 +50,7 @@ export default function DiscountProductsClient({
 			brand: product.brand,
 			name: product.name,
 			price: product.price,
+			oldPrice: product.oldPrice,
 			image: product.image,
 			quantity: 1,
 		})
@@ -92,9 +93,10 @@ export default function DiscountProductsClient({
 
 				<div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 auto-rows-[350px] md:auto-rows-[380px]'>
 					{products.map((product, index) => {
-						const discountPercent = Math.round(
-							((product.oldPrice - product.price) / product.oldPrice) * 100,
-						)
+						const oldPriceNum = product.oldPrice ?? product.price
+						const discountPercent = oldPriceNum > product.price
+							? Math.round(((oldPriceNum - product.price) / oldPriceNum) * 100)
+							: 0
 						const isFeatured = index === 0 || index === 3 || index === 6
 						const isAdded = addedItems[product.id]
 
@@ -108,7 +110,7 @@ export default function DiscountProductsClient({
 								)}
 							>
 								{isFeatured && (
-									<div className='absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none'></div>
+									<div className='absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-size-[24px_24px] pointer-events-none'></div>
 								)}
 
 								<div className='absolute top-0 left-0 w-full p-6 md:p-8 flex justify-between items-start z-20 pointer-events-none'>

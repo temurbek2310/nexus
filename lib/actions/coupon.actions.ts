@@ -48,8 +48,8 @@ export async function createCoupon(data: Partial<ICoupon>) {
 		const newCoupon = await Coupon.create(data)
 		revalidatePath('/admin/coupons')
 		return JSON.parse(JSON.stringify(newCoupon))
-	} catch (error: any) {
-		throw new Error(`Kupon yaratishda xatolik: ${error.message}`)
+	} catch (error: unknown) {
+		throw new Error(`Kupon yaratishda xatolik: ${error instanceof Error ? error.message : String(error)}`)
 	}
 }
 
@@ -62,8 +62,8 @@ export async function updateCoupon(id: string, data: Partial<ICoupon>) {
 		})
 		revalidatePath('/admin/coupons')
 		return JSON.parse(JSON.stringify(updatedCoupon))
-	} catch (error: any) {
-		throw new Error(`Kupon tahrirlashda xatolik: ${error.message}`)
+	} catch (error: unknown) {
+		throw new Error(`Kupon tahrirlashda xatolik: ${error instanceof Error ? error.message : String(error)}`)
 	}
 }
 
@@ -73,7 +73,7 @@ export async function deleteCoupon(id: string) {
 		await connectToDatabase()
 		await Coupon.findByIdAndDelete(id)
 		revalidatePath('/admin/coupons')
-	} catch (error: any) {
-		throw new Error(`Kupon o'chirishda xatolik: ${error.message}`)
+	} catch (error: unknown) {
+		throw new Error(`Kupon o'chirishda xatolik: ${error instanceof Error ? error.message : String(error)}`)
 	}
 }

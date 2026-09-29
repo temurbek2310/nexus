@@ -39,10 +39,12 @@ export default function BestPricesClient({ products }: BestPricesClientProps) {
 		e.stopPropagation()
 
 		addItem({
-			id: product.id, // String formatda ketadi
+			id: product.id,
 			brand: product.brand,
 			name: product.name,
 			price: Number(product.price),
+			// Agar oldPrice bor bo'lsa raqam qilib jo'natamiz, bo'lmasa undefined
+			oldPrice: product.oldPrice ? Number(product.oldPrice) : undefined,
 			image: product.image,
 			quantity: 1,
 		})

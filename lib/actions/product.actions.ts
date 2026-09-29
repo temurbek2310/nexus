@@ -38,8 +38,8 @@ export async function createProduct(data: Partial<IProduct>) {
 		revalidatePath('/admin/categories') // Kategoriyalar jadvalini yangilash
 
 		return JSON.parse(JSON.stringify(newProduct))
-	} catch (error: any) {
-		throw new Error(`Mahsulot yaratishda xatolik: ${error.message}`)
+	} catch (error: unknown) {
+		throw new Error(`Mahsulot yaratishda xatolik: ${error instanceof Error ? error.message : String(error)}`)
 	}
 }
 
@@ -77,8 +77,8 @@ export async function updateProduct(id: string, data: Partial<IProduct>) {
 		revalidatePath('/admin/categories')
 
 		return JSON.parse(JSON.stringify(updatedProduct))
-	} catch (error: any) {
-		throw new Error(`Mahsulot tahrirlashda xatolik: ${error.message}`)
+	} catch (error: unknown) {
+		throw new Error(`Mahsulot tahrirlashda xatolik: ${error instanceof Error ? error.message : String(error)}`)
 	}
 }
 
@@ -132,7 +132,25 @@ export async function deleteProduct(id: string) {
 
 		revalidatePath('/admin/products')
 		revalidatePath('/admin/categories')
-	} catch (error: any) {
-		throw new Error(`Mahsulot o'chirishda xatolik: ${error.message}`)
+	} catch (error: unknown) {
+		throw new Error(`Mahsulot o'chirishda xatolik: ${error instanceof Error ? error.message : String(error)}`)
+	}
+}
+
+// Bitta mahsulotni ID bo'yicha olish uchun funksiya
+export async function getProductById(productId: string) {
+	try {
+		await connectToDatabase() // Bazaga ulanish (sizning kodingizda qanday yozilgan bo'lsa shunday)
+
+		// Product modelidan ID bo'yicha qidirish (category ni populate qiladi)
+		const product = await Product.findById(productId).populate('category')
+
+		if (!product) return null
+
+		// Next.js Server Components uchun ma'lumotni toza JSON qilib qaytaramiz
+		return JSON.parse(JSON.stringify(product))
+	} catch (error) {
+		console.error('getProductById xatoligi:', error)
+		return null
 	}
 }

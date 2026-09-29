@@ -21,8 +21,8 @@ export async function createCategory(data: Partial<ICategory>) {
 		const newCategory = await Category.create(data)
 		revalidatePath('/admin/categories')
 		return JSON.parse(JSON.stringify(newCategory))
-	} catch (error: any) {
-		throw new Error(`Kategoriya yaratishda xatolik: ${error.message}`)
+	} catch (error: unknown) {
+		throw new Error(`Kategoriya yaratishda xatolik: ${error instanceof Error ? error.message : String(error)}`)
 	}
 }
 
@@ -35,8 +35,8 @@ export async function updateCategory(id: string, data: Partial<ICategory>) {
 		})
 		revalidatePath('/admin/categories')
 		return JSON.parse(JSON.stringify(updatedCategory))
-	} catch (error: any) {
-		throw new Error(`Kategoriya tahrirlashda xatolik: ${error.message}`)
+	} catch (error: unknown) {
+		throw new Error(`Kategoriya tahrirlashda xatolik: ${error instanceof Error ? error.message : String(error)}`)
 	}
 }
 
@@ -69,7 +69,7 @@ export async function deleteCategory(id: string) {
 		await connectToDatabase()
 		await Category.findByIdAndDelete(id)
 		revalidatePath('/admin/categories')
-	} catch (error: any) {
-		throw new Error(`Kategoriya o'chirishda xatolik: ${error.message}`)
+	} catch (error: unknown) {
+		throw new Error(`Kategoriya o'chirishda xatolik: ${error instanceof Error ? error.message : String(error)}`)
 	}
 }

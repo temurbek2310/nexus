@@ -21,7 +21,7 @@ interface StatItem {
 	value: string
 	trend: string
 	isPositive: boolean
-	icon: any
+	icon: React.ComponentType<{ className?: string }>
 }
 
 interface IOrder {

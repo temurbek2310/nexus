@@ -306,7 +306,7 @@ export default function ProductsClient({
 											<td className='py-4 px-6 whitespace-nowrap'>
 												<Badge
 													variant='outline'
-													className={`text-[10px] font-bold px-2.5 py-1 ${color}${border}`}
+													className={`text-[10px] font-bold px-2.5 py-1 ${color} ${border}`}
 												>
 													{product.status}
 												</Badge>

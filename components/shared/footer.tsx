@@ -55,7 +55,7 @@ const Footer = () => {
 							Yangi kelganlar
 						</Link>
 						<Link
-							href='discounts'
+							href='/discounts'
 							className='text-gray-500 hover:text-black transition-colors'
 						>
 							Chegirmalar

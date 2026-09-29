@@ -51,6 +51,8 @@ async function fetchAndFormatCoolestGadgets(): Promise<{
 				brand: brandObj?.value || 'NEXUS',
 				name: p.title,
 				price: finalPrice.toString(),
+				// MANA SHU QATOR QO'SHILADI:
+				oldPrice: p.discountPrice ? p.price.toString() : null,
 				image:
 					p.images && p.images.length > 0 ? p.images[0] : '/placeholder.png',
 			}

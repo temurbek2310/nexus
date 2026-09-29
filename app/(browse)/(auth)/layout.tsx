@@ -11,7 +11,7 @@ export default function AuthLayout({
 			{/* ================= CHAP TOMON: BRENDING VA DIZAYN (Faqat kompyuterda ko'rinadi) ================= */}
 			<div className='hidden lg:flex w-1/2 bg-[#050505] flex-col justify-between p-12 relative overflow-hidden'>
 				{/* Vercel Engineering Grid Fon */}
-				<div className='absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none'></div>
+				<div className='absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-size-[24px_24px] pointer-events-none'></div>
 
 				{/* Orqa fon nur effekti */}
 				<div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-white/10 rounded-full blur-[120px] pointer-events-none'></div>

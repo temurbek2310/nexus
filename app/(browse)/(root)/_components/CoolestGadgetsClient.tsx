@@ -14,6 +14,7 @@ export interface Gadget {
 	brand: string
 	name: string
 	price: string
+	oldPrice?: string | null // <--- SHU QATOR QO'SHILADI
 	image: string
 }
 
@@ -44,6 +45,8 @@ export default function CoolestGadgetsClient({
 			brand: gadget.brand,
 			name: gadget.name,
 			price: Number(gadget.price),
+			// ASOSIY YECHIM: oldPrice ni ham qo'shamiz
+			oldPrice: gadget.oldPrice ? Number(gadget.oldPrice) : undefined,
 			image: gadget.image,
 			quantity: 1,
 		})

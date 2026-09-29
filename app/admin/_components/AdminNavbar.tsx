@@ -31,7 +31,7 @@ export default function AdminNavbar() {
 				<div className='h-6 w-[1px] bg-gray-200'></div>
 
 				<div className='flex items-center gap-3'>
-					<UserButton afterSignOutUrl='/' />
+					<UserButton />
 				</div>
 			</div>
 		</header>

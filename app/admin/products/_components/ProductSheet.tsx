@@ -121,8 +121,8 @@ export default function ProductSheet({
 				await createProduct(payload)
 			}
 			setIsOpen(false)
-		} catch (err: any) {
-			setError(err.message || 'Xatolik yuz berdi')
+		} catch (err: unknown) {
+			setError(err instanceof Error ? err.message : 'Xatolik yuz berdi')
 		} finally {
 			setIsLoading(false)
 		}

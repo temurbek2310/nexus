@@ -1,15 +1,19 @@
-'use function'
 'use client'
 
 import { ArrowRight, Heart, ShoppingCart, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import React from 'react'
 
-// DIQQAT: O'zingizning useStore hook'ingizni aynan shu yerda chaqirasiz.
-// Masalan: import { useStore } from '@/store/useStore'
+interface WishlistItem {
+	id: string
+	name: string
+	price: string
+	category: string
+	image: string
+	inStock: boolean
+}
 
-// Vaqtinchalik Mock Data (Siz o'z hook'ingizni ulaguningizcha dizayn buzilmasligi uchun)
-const MOCK_WISHLIST = [
+const MOCK_WISHLIST: WishlistItem[] = [
 	{
 		id: 'PROD-1',
 		name: 'Sony WH-1000XM5 Wireless Noise Cancelling Headphones',
@@ -60,7 +64,7 @@ export default function WishlistPage() {
 		setWishlist(prev => prev.filter(item => item.id !== id))
 	}
 
-	const handleAddToCart = (item: any) => {
+	const handleAddToCart = (item: WishlistItem) => {
 		// Sizning asl kodingiz: addToCart(item)
 		console.log("Savatga qo'shildi:", item.name)
 	}

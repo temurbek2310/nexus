@@ -48,7 +48,8 @@ export default function ShopClient({
 	const searchParams = useSearchParams()
 	const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false)
 
-	const handleSortChange = (value: string) => {
+	const handleSortChange = (value: string | null) => {
+		if (!value) return
 		const current = qs.parse(searchParams.toString())
 		const url = qs.stringifyUrl(
 			{ url: pathname, query: { ...current, sort: value, page: '1' } },

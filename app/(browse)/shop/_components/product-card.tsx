@@ -42,6 +42,8 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 			brand: product.brand,
 			name: product.name,
 			price: Number(product.price),
+			// ASOSIY QO'SHILGAN JOY: Chegirmani hisoblash uchun oldPrice yuboriladi
+			oldPrice: product.oldPrice ? Number(product.oldPrice) : undefined,
 			image: product.image,
 			quantity: 1,
 		})

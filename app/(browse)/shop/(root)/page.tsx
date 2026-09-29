@@ -1,14 +1,37 @@
 import { getCategories } from '@/lib/actions/category.actions'
 import { getProducts } from '@/lib/actions/product.actions'
 import ShopClient from '../_components/shop-client'
+import { IProduct } from '@/lib/actions/product.actions'
+
+interface IBackendProduct extends Omit<IProduct, 'category'> {
+	category: { title: string; slug: string } | string
+}
+
+interface IBackendCategory {
+	_id: string
+	title: string
+	slug?: string
+	status: string
+	productCount?: number
+}
 
 const ITEMS_PER_PAGE = 15
 
 // 1. MANTIQNI TASHQARIGA OLIB CHIQAMIZ (try...catch shu yerda bo'ladi)
-async function fetchShopData(params: any) {
+interface ShopParams {
+	q: string
+	categoryParam: string
+	min: number
+	max: number
+	sort: string
+	filterParam: string
+	currentPage: number
+}
+
+async function fetchShopData(params: ShopParams) {
 	try {
-		const rawProducts = (await getProducts({})) as any[]
-		const rawCategories = (await getCategories({})) as any[]
+		const rawProducts = await getProducts({}) as IBackendProduct[]
+		const rawCategories = await getCategories({}) as IBackendCategory[]
 
 		// 1. Kategoriyalarni tayyorlash
 		const activeCategories = rawCategories.filter(c => c.status === 'Faol')
@@ -25,14 +48,14 @@ async function fetchShopData(params: any) {
 
 		if (params.filterParam === 'sale') {
 			validProducts = validProducts.filter(
-				p => (p.discountPrice ?? 0) > 0 && p.discountPrice < p.price,
+				p => (p.discountPrice ?? 0) > 0 && p.discountPrice! < p.price,
 			)
 		}
 
 		if (params.q) {
 			validProducts = validProducts.filter(p => {
 				const brandObj = p.specs?.find(
-					(s: any) =>
+					(s: { key: string; value: string }) =>
 						s.key.toLowerCase() === 'brend' || s.key.toLowerCase() === 'brand',
 				)
 				const brand = brandObj?.value.toLowerCase() || ''
@@ -92,7 +115,7 @@ async function fetchShopData(params: any) {
 		// 5. Formatlash
 		const formattedProducts = paginated.map(p => {
 			const brandObj = p.specs?.find(
-				(s: any) =>
+				(s: { key: string; value: string }) =>
 					s.key.toLowerCase() === 'brend' || s.key.toLowerCase() === 'brand',
 			)
 			return {
