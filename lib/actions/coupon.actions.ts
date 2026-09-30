@@ -1,6 +1,6 @@
 'use server'
 
-import { unstable_noStore as noStore, revalidatePath } from 'next/cache'
+import { revalidatePath } from 'next/cache'
 import { connection } from 'next/server'
 import Coupon from '../models/coupon.model'
 import { connectToDatabase } from '../mongoose'
@@ -18,8 +18,6 @@ export interface ICoupon {
 
 // Barcha kuponlarni olish
 export async function getCoupons(): Promise<ICoupon[]> {
-	noStore() // 2. Bu yerda chaqiramiz: Next.js endi bu qismni keshlamaydi va prerender qilmaydi!
-
 	try {
 		await connection()
 		await connectToDatabase()
@@ -27,7 +25,7 @@ export async function getCoupons(): Promise<ICoupon[]> {
 
 		// Sanani tekshirib, muddati o'tganlarni avtomatik belgilash logikasi
 		const now = new Date()
-		for (let coupon of coupons) {
+		for (const coupon of coupons) {
 			if (new Date(coupon.expiryDate) < now && coupon.status === 'Faol') {
 				coupon.status = "Muddat o'tgan"
 				await coupon.save()
@@ -35,7 +33,7 @@ export async function getCoupons(): Promise<ICoupon[]> {
 		}
 
 		return JSON.parse(JSON.stringify(coupons))
-	} catch (error) {
+	} catch (error: unknown) {
 		console.error('Kuponlarni olishda xatolik:', error)
 		return []
 	}
@@ -49,7 +47,9 @@ export async function createCoupon(data: Partial<ICoupon>) {
 		revalidatePath('/admin/coupons')
 		return JSON.parse(JSON.stringify(newCoupon))
 	} catch (error: unknown) {
-		throw new Error(`Kupon yaratishda xatolik: ${error instanceof Error ? error.message : String(error)}`)
+		throw new Error(
+			`Kupon yaratishda xatolik: ${error instanceof Error ? error.message : String(error)}`,
+		)
 	}
 }
 
@@ -63,7 +63,9 @@ export async function updateCoupon(id: string, data: Partial<ICoupon>) {
 		revalidatePath('/admin/coupons')
 		return JSON.parse(JSON.stringify(updatedCoupon))
 	} catch (error: unknown) {
-		throw new Error(`Kupon tahrirlashda xatolik: ${error instanceof Error ? error.message : String(error)}`)
+		throw new Error(
+			`Kupon tahrirlashda xatolik: ${error instanceof Error ? error.message : String(error)}`,
+		)
 	}
 }
 
@@ -74,6 +76,8 @@ export async function deleteCoupon(id: string) {
 		await Coupon.findByIdAndDelete(id)
 		revalidatePath('/admin/coupons')
 	} catch (error: unknown) {
-		throw new Error(`Kupon o'chirishda xatolik: ${error instanceof Error ? error.message : String(error)}`)
+		throw new Error(
+			`Kupon o'chirishda xatolik: ${error instanceof Error ? error.message : String(error)}`,
+		)
 	}
 }

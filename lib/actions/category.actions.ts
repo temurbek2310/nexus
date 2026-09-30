@@ -57,7 +57,7 @@ export async function getCategories({ query = '' }: { query?: string }) {
 		const categories = await Category.find(searchFilter).sort({ createdAt: -1 })
 
 		return JSON.parse(JSON.stringify(categories)) as ICategory[]
-	} catch (error) {
+	} catch (error: unknown) {
 		console.error('Kategoriyalarni olishda xatolik:', error)
 		return []
 	}

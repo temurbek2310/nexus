@@ -39,11 +39,9 @@ async function fetchAndFormatBestPrices(): Promise<{
 			valid = [...valid, ...others]
 		}
 
-		// Aralashtirish
-		for (let i = valid.length - 1; i > 0; i--) {
-			const j = Math.floor(Math.random() * (i + 1))
-			;[valid[i], valid[j]] = [valid[j], valid[i]]
-		}
+		// Deterministic sort (using _id) to prevent Next.js cache hydration mismatches
+		valid.sort((a, b) => a._id.toString().localeCompare(b._id.toString()))
+
 
 		const selected: IBackendProduct[] = []
 		const seenCategories = new Set<string>()

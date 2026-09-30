@@ -96,7 +96,7 @@ export async function getProducts({ query = '' }: { query?: string }) {
 			.sort({ createdAt: -1 })
 
 		return JSON.parse(JSON.stringify(products))
-	} catch (error) {
+	} catch (error: unknown) {
 		console.error('Mahsulotlarni olishda xatolik:', error)
 		return []
 	}
@@ -149,7 +149,7 @@ export async function getProductById(productId: string) {
 
 		// Next.js Server Components uchun ma'lumotni toza JSON qilib qaytaramiz
 		return JSON.parse(JSON.stringify(product))
-	} catch (error) {
+	} catch (error: unknown) {
 		console.error('getProductById xatoligi:', error)
 		return null
 	}

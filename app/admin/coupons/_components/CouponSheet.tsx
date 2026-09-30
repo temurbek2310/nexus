@@ -146,7 +146,7 @@ export default function CouponSheet({
 									<button
 										type='button'
 										onClick={generateCode}
-										className='shrink-0 h-[46px] px-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-600 hover:text-black hover:border-black transition-all shadow-sm flex items-center justify-center cursor-pointer'
+										className='shrink-0 h-11.5 px-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-600 hover:text-black hover:border-black transition-all shadow-sm flex items-center justify-center cursor-pointer'
 									>
 										<RefreshCw className='w-4 h-4' />
 									</button>

@@ -88,7 +88,7 @@ export default function CartPage() {
 	return (
 		<div className='min-h-screen bg-[#FAFAFA] pt-32 pb-24'>
 			{/* 3. Tailwind xatosi hal qilindi (max-w-350) */}
-			<div className='max-w-350 mx-auto px-6 sm:px-12'>
+			<div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
 				<div className='flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4'>
 					<div>
 						<Button
@@ -101,7 +101,7 @@ export default function CartPage() {
 								Xaridlarni davom ettirish
 							</Link>
 						</Button>
-						<h1 className='font-space-grotesk text-4xl md:text-5xl font-bold tracking-tight text-black'>
+						<h1 className='font-space-grotesk text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-black'>
 							Savat
 						</h1>
 						<p className='font-montserrat text-gray-500 mt-2'>
@@ -126,12 +126,12 @@ export default function CartPage() {
 						{cartItems.map(item => (
 							<div
 								key={item.id}
-								className='flex flex-col sm:flex-row items-center gap-6 p-4 sm:p-6 bg-white border border-gray-200 rounded-[2rem] hover:shadow-lg hover:border-gray-300 transition-all duration-300 group'
+								className='flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 p-4 sm:p-6 bg-white border border-gray-200 rounded-[2rem] hover:shadow-lg hover:border-gray-300 transition-all duration-300 group'
 							>
 								{/* 4. Tailwind xatosi hal qilindi (block klassi olib tashlandi) */}
 								<Link
 									href={`/shop/${item.id}`}
-									className='relative w-full sm:w-32 h-32 bg-[#FAFAFA] rounded-2xl overflow-hidden flex items-center justify-center shrink-0 cursor-pointer'
+									className='relative w-full sm:w-28 h-40 sm:h-28 bg-[#FAFAFA] rounded-2xl overflow-hidden flex items-center justify-center shrink-0 cursor-pointer'
 								>
 									<Image
 										src={item.image}
@@ -142,7 +142,7 @@ export default function CartPage() {
 									/>
 								</Link>
 
-								<div className='flex-1 flex flex-col sm:flex-row justify-between items-center sm:items-start w-full gap-6'>
+								<div className='flex-1 flex flex-col sm:flex-row justify-between items-center sm:items-start w-full gap-4 sm:gap-6 min-w-0'>
 									<div className='flex flex-col text-center sm:text-left'>
 										<span className='font-space-grotesk text-xs font-bold tracking-widest text-gray-400 uppercase mb-1'>
 											{item.brand}
@@ -277,11 +277,12 @@ export default function CartPage() {
 									${total.toFixed(2)}
 								</span>
 							</div>
-
-							<Button className='w-full h-14 bg-black text-white hover:bg-gray-800 rounded-2xl font-montserrat text-base font-semibold transition-all shadow-xl shadow-black/10 group'>
-								Buyurtmani rasmiylashtirish
-								<ArrowRight className='w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-1' />
-							</Button>
+							<Link href={'/checkout'}>
+								<Button className='w-full h-14 bg-black text-white hover:bg-gray-800 rounded-2xl font-montserrat text-base font-semibold transition-all shadow-xl shadow-black/10 group'>
+									Buyurtmani rasmiylashtirish
+									<ArrowRight className='w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-1' />
+								</Button>
+							</Link>
 						</div>
 
 						<div className='flex items-center justify-center gap-2 text-gray-400 font-montserrat text-xs'>

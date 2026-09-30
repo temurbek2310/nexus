@@ -18,8 +18,12 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import ProductSheet from './ProductSheet'
 
+interface IPopulatedProduct extends Omit<IProduct, 'category'> {
+	category: { _id: string; title: string; slug?: string } | string
+}
+
 interface ProductsClientProps {
-	initialProducts: any[] // Populated bo'lganligi uchun any[] qo'yamiz yoki alohida Type yasash kerak
+	initialProducts: IPopulatedProduct[]
 	categories: ICategory[]
 	query: string
 }
@@ -91,7 +95,7 @@ export default function ProductsClient({
 		setIsSheetOpen(true)
 	}
 
-	const handleEdit = (product: any) => {
+	const handleEdit = (product: IPopulatedProduct) => {
 		// Category object (populate bo'lgan) ni id ga aylantirib yuboramiz (Edit qilishda category faqat ID so'raydi)
 		const formattedProduct = {
 			...product,

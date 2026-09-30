@@ -94,7 +94,7 @@ export default function ProductDetailsClient({
 
 	return (
 		<div className='min-h-screen bg-[#FAFAFA] pt-32 pb-24'>
-			<div className='max-w-[1400px] mx-auto px-6 sm:px-12'>
+			<div className='max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-12'>
 				<Button
 					asChild
 					variant='ghost'
@@ -161,12 +161,12 @@ export default function ProductDetailsClient({
 							</span>
 						</div>
 
-						<h1 className='font-space-grotesk text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-black mb-6'>
+						<h1 className='font-space-grotesk text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-black mb-6'>
 							{product.name}
 						</h1>
 
 						<div className='flex items-end gap-4 mb-8'>
-							<span className='font-space-grotesk text-4xl md:text-5xl font-bold text-black'>
+							<span className='font-space-grotesk text-3xl sm:text-4xl md:text-5xl font-bold text-black'>
 								${product.price}
 							</span>
 							{product.oldPrice && (
@@ -208,8 +208,8 @@ export default function ProductDetailsClient({
 						<div className='w-full h-px bg-gray-200 mb-10'></div>
 
 						{/* XARID QISMI */}
-						<div className='flex flex-col sm:flex-row items-center gap-4 mb-8 w-full'>
-							<div className='flex items-center justify-between w-full sm:w-36 h-14 bg-white border border-gray-200 rounded-2xl px-2 shrink-0'>
+						<div className='flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-8 w-full'>
+							<div className='flex items-center justify-between w-full sm:w-36 h-12 sm:h-14 bg-white border border-gray-200 rounded-2xl px-2 shrink-0'>
 								<Button
 									variant='ghost'
 									size='icon'

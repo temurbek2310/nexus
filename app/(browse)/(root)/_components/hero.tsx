@@ -8,10 +8,10 @@ const Hero = () => {
 	return (
 		<section className='relative bg-white pt-24 pb-16 lg:pt-32 lg:pb-32 overflow-hidden border-b border-gray-200'>
 			{/* 1. KREATIV FON: Muhandislik setkasi (Grid Pattern) va Vercel Glow effekti */}
-			<div className='absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[32px_32px]'></div>
+			<div className='absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:32px_32px]'></div>
 			<div className='absolute top-0 right-0 -mr-20 -mt-20 w-150 h-150 bg-gray-50 rounded-full blur-[100px] opacity-60 pointer-events-none'></div>
 
-			<div className='relative max-w-[1600px] mx-auto px-6 sm:px-12 lg:px-24'>
+			<div className='relative max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-16'>
 				<div className='flex flex-col lg:flex-row items-center justify-between gap-16'>
 					{/* Chap qism: Typografiya va Asosiy ma'lumot */}
 					<div className='w-full lg:w-[55%] flex flex-col justify-center text-left z-10'>
@@ -28,7 +28,7 @@ const Hero = () => {
 						</Badge>
 
 						{/* Kreativ, massiv sarlavha */}
-						<h1 className='font-space-grotesk text-5xl sm:text-6xl md:text-[5.5rem] font-bold tracking-tighter text-black leading-[0.95]'>
+						<h1 className='font-space-grotesk text-4xl sm:text-5xl md:text-6xl lg:text-[5.5rem] font-bold tracking-tighter text-black leading-[0.95]'>
 							Vizual <br />
 							<span className='text-gray-300'>inqilobni</span> <br />
 							boshqaring.
@@ -40,11 +40,11 @@ const Hero = () => {
 						</p>
 
 						{/* Shadcn UI Buttons qatori */}
-						<div className='flex items-center gap-4 mt-10 font-montserrat'>
+						<div className='flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-8 font-montserrat'>
 							<Button
 								asChild
 								size='lg'
-								className='h-12 px-8 rounded-md bg-black text-white hover:bg-gray-800 hover:shadow-lg hover:shadow-black/10 transition-all duration-300 text-sm font-medium'
+								className='w-full sm:w-auto h-12 px-8 rounded-md bg-black text-white hover:bg-gray-800 hover:shadow-lg hover:shadow-black/10 transition-all duration-300 text-sm font-medium'
 							>
 								<Link href='/catalog'>
 									Katalogni ochish
@@ -56,7 +56,7 @@ const Hero = () => {
 								asChild
 								variant='outline'
 								size='lg'
-								className='h-12 px-8 rounded-md border-gray-300 hover:border-black text-black transition-colors text-sm font-medium'
+								className='w-full sm:w-auto h-12 px-8 rounded-md border-gray-300 hover:border-black text-black transition-colors text-sm font-medium'
 							>
 								<Link href='/collections'>Texnik xususiyatlar</Link>
 							</Button>
@@ -78,7 +78,7 @@ const Hero = () => {
 							</div>
 
 							{/* Floating Spec Badge 1 (Lucide Video Icon bilan) */}
-							<div className='absolute top-12 -right-4 lg:-right-12 z-20 bg-white/90 backdrop-blur-sm border border-gray-200 px-4 py-3 rounded-lg shadow-sm font-space-grotesk text-xs font-bold text-black flex items-center gap-3 animate-[bounce_4s_infinite]'>
+							<div className='absolute top-12 right-0 lg:-right-12 z-20 bg-white/90 backdrop-blur-sm border border-gray-200 px-4 py-3 rounded-lg shadow-sm font-space-grotesk text-xs font-bold text-black flex items-center gap-3 animate-[bounce_4s_infinite]'>
 								<div className='bg-gray-100 p-2 rounded-md'>
 									<Video className='w-4 h-4 text-black' />
 								</div>
@@ -91,7 +91,7 @@ const Hero = () => {
 							</div>
 
 							{/* Floating Spec Badge 2 (Lucide Aperture Icon bilan) */}
-							<div className='absolute bottom-16 -left-4 lg:-left-8 z-20 bg-white/90 backdrop-blur-sm border border-gray-200 px-4 py-3 rounded-lg shadow-sm font-space-grotesk text-xs font-bold text-black flex items-center gap-3 animate-[bounce_5s_infinite_reverse]'>
+							<div className='absolute bottom-16 left-0 lg:-left-8 z-20 bg-white/90 backdrop-blur-sm border border-gray-200 px-4 py-3 rounded-lg shadow-sm font-space-grotesk text-xs font-bold text-black flex items-center gap-3 animate-[bounce_5s_infinite_reverse]'>
 								<div className='bg-gray-100 p-2 rounded-md'>
 									<Aperture className='w-4 h-4 text-black' />
 								</div>

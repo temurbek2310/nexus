@@ -25,7 +25,7 @@ import { ReactNode, Suspense } from 'react'
 const BrowseLayout = ({ children }: { children: ReactNode }) => {
 	return (
 		// Vercel style: Oq fon, qora/to'q kulrang matnlar
-		<div className='min-h-screen flex flex-col bg-white text-gray-900 font-montserrat selection:bg-black selection:text-white'>
+		<div className='min-h-screen flex flex-col bg-white text-gray-900 font-montserrat selection:bg-black selection:text-white overflow-x-hidden'>
 			<Suspense>
 				<Navbar />
 			</Suspense>

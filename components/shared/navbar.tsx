@@ -103,7 +103,7 @@ const Navbar = () => {
 						className={cn(
 							'flex items-center overflow-hidden transition-all duration-500 ease-out',
 							isSearchOpen
-								? 'w-48 sm:w-64 bg-gray-50/80 border border-gray-200 rounded-full px-3 opacity-100'
+								? 'w-36 sm:w-48 md:w-64 bg-gray-50/80 border border-gray-200 rounded-full px-3 opacity-100'
 								: 'w-9 rounded-full bg-transparent border border-transparent hover:bg-gray-100',
 						)}
 					>

@@ -94,7 +94,7 @@ export async function createAddress(
 		revalidatePath('/dashboard/addresses')
 
 		return JSON.parse(JSON.stringify(newAddress))
-	} catch (error) {
+	} catch (error: unknown) {
 		const message =
 			error instanceof Error
 				? error.message
@@ -133,7 +133,7 @@ export async function updateAddress(
 		revalidatePath('/dashboard/addresses')
 
 		return JSON.parse(JSON.stringify(updatedAddress))
-	} catch (error) {
+	} catch (error: unknown) {
 		const message =
 			error instanceof Error
 				? error.message
@@ -175,7 +175,7 @@ export async function setAsDefaultAddress(id: string, clerkId?: string) {
 		revalidatePath('/dashboard/addresses')
 
 		return { success: true }
-	} catch (error) {
+	} catch (error: unknown) {
 		const message =
 			error instanceof Error
 				? error.message
@@ -213,7 +213,7 @@ export async function deleteAddress(id: string, clerkId?: string) {
 		revalidatePath('/dashboard/addresses')
 
 		return { success: true }
-	} catch (error) {
+	} catch (error: unknown) {
 		const message =
 			error instanceof Error ? error.message : "O'chirishda xatolik yuz berdi"
 		throw new Error(message)

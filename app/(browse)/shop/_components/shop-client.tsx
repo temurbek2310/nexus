@@ -60,10 +60,10 @@ export default function ShopClient({
 
 	return (
 		<div className='min-h-screen bg-[#FAFAFA] pt-32 pb-24'>
-			<div className='max-w-[1600px] mx-auto px-6 sm:px-12 lg:px-24'>
-				<div className='flex flex-col md:flex-row md:items-end justify-between mb-10 pb-8 border-b border-gray-200'>
+			<div className='max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-16'>
+				<div className='flex flex-col md:flex-row md:items-end justify-between mb-8 pb-6 border-b border-gray-200'>
 					<div>
-						<h1 className='font-space-grotesk text-4xl md:text-5xl font-bold tracking-tight text-black mb-4'>
+						<h1 className='font-space-grotesk text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-black mb-4'>
 							Do'kon
 						</h1>
 						<p className='font-montserrat text-gray-500 text-sm md:text-base max-w-md text-balance'>
@@ -81,7 +81,7 @@ export default function ShopClient({
 					/>
 
 					<main className='lg:w-3/4 flex flex-col gap-6 w-full'>
-						<div className='flex items-center justify-between bg-white p-4 rounded-2xl border border-gray-200 shadow-sm'>
+						<div className='flex items-center justify-between bg-white p-3 sm:p-4 rounded-2xl border border-gray-200 shadow-sm'>
 							<div className='flex items-center gap-4'>
 								<Button
 									variant='outline'
@@ -103,7 +103,7 @@ export default function ShopClient({
 									Tartiblash:
 								</span>
 								<Select value={currentSort} onValueChange={handleSortChange}>
-									<SelectTrigger className='w-[160px] h-10 bg-gray-50 border-gray-200 rounded-xl font-montserrat text-sm focus:ring-black'>
+									<SelectTrigger className='w-[140px] sm:w-[160px] h-10 bg-gray-50 border-gray-200 rounded-xl font-montserrat text-sm focus:ring-black'>
 										<SelectValue placeholder='Tanlang...' />
 									</SelectTrigger>
 									<SelectContent className='font-montserrat text-sm rounded-xl'>

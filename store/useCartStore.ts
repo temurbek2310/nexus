@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 export interface CartItem {
-	id: string | number
+	id: string
 	brand: string
 	name: string
 	price: number
@@ -14,8 +14,8 @@ export interface CartItem {
 interface CartState {
 	items: CartItem[]
 	addItem: (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => void
-	removeItem: (id: string | number) => void
-	updateQuantity: (id: string | number, delta: number) => void
+	removeItem: (id: string) => void
+	updateQuantity: (id: string, delta: number) => void
 	clearCart: () => void
 	getTotalPrice: () => number
 	getTotalItems: () => number
@@ -29,16 +29,13 @@ export const useCartStore = create<CartState>()(
 			// 1. Mahsulot qo'shish
 			addItem: item => {
 				set(state => {
-					// XATO HAL QILINDI: Ikkala ID ni ham majburiy String ga o'girib solishtiramiz
-					const existingItem = state.items.find(
-						i => String(i.id) === String(item.id),
-					)
+					const existingItem = state.items.find(i => i.id === item.id)
 					const qtyToAdd = item.quantity || 1
 
 					if (existingItem) {
 						return {
 							items: state.items.map(i =>
-								String(i.id) === String(item.id)
+								i.id === item.id
 									? { ...i, quantity: i.quantity + qtyToAdd }
 									: i,
 							),
@@ -52,8 +49,7 @@ export const useCartStore = create<CartState>()(
 			// 2. Mahsulotni savatdan o'chirish
 			removeItem: id => {
 				set(state => ({
-					// XATO HAL QILINDI
-					items: state.items.filter(i => String(i.id) !== String(id)),
+					items: state.items.filter(i => i.id !== id),
 				}))
 			},
 
@@ -61,8 +57,7 @@ export const useCartStore = create<CartState>()(
 			updateQuantity: (id, delta) => {
 				set(state => ({
 					items: state.items.map(item => {
-						// XATO HAL QILINDI
-						if (String(item.id) === String(id)) {
+						if (item.id === id) {
 							const newQuantity = Math.max(1, item.quantity + delta)
 							return { ...item, quantity: newQuantity }
 						}
