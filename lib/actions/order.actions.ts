@@ -51,8 +51,8 @@ export async function completeOrder(orderId: string) {
 			}
 
 			order.paymentStatus = "To'landi"
-			// YANGI MANTIQ: To'lov o'tgandan so'ng status avtomatik "To'landi" ga o'tadi
-			order.orderStatus = "To'landi"
+			// TO'G'RILANDI: orderStatus uchun Mongoose enum ro'yxatida bor qiymat berildi
+			order.orderStatus = 'Qabul qilindi'
 			await order.save()
 
 			transaction = await Transaction.create({
@@ -92,6 +92,7 @@ export async function getUserOrders() {
 
 		const orders = await Order.find({ user: user._id })
 			.sort({ createdAt: -1 })
+			.populate('address')
 			.lean()
 
 		return JSON.parse(JSON.stringify(orders))
@@ -146,7 +147,6 @@ export async function getAllOrdersAdmin() {
 
 		// Ma'lumotlarni Client formatiga moslash
 		const formattedOrders = orders.map((order: any) => {
-			// Eski statuslarni avtomatik o'giramiz
 			let status = order.orderStatus
 			if (status === 'Yangi') status = 'Qabul qilindi'
 			if (status === 'Tayyorlanmoqda') status = 'Qadoqlanmoqda'
@@ -236,13 +236,10 @@ export async function getOrderByIdAdmin(orderId: string) {
 			.populate('address') // Manzil ma'lumotlarini olish
 			.lean()
 
-		console.log('=== BAZADAN KELGAN MANZIL ===', order?.address)
-
 		if (!order) return null
 
 		const transaction = await Transaction.findOne({ order: order._id }).lean()
 
-		// Eski statuslarni avtomatik konvertatsiya qilish
 		let status = order.orderStatus
 		if (status === 'Yangi') status = 'Qabul qilindi'
 		if (status === 'Tayyorlanmoqda') status = 'Qadoqlanmoqda'

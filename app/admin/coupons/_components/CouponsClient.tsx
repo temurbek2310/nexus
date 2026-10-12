@@ -1,5 +1,6 @@
 'use client'
 
+import ConfirmModal from '@/components/shared/confirm-modal'
 import { Badge } from '@/components/ui/badge'
 import { ICoupon, deleteCoupon } from '@/lib/actions/coupon.actions'
 import {
@@ -63,12 +64,10 @@ export default function CouponsClient({ initialCoupons }: CouponsClientProps) {
 	}
 
 	const handleDelete = async (id: string) => {
-		if (confirm("Haqiqatan ham bu kuponni o'chirishni xohlaysizmi?")) {
-			try {
-				await deleteCoupon(id)
-			} catch (error) {
-				console.error(error)
-			}
+		try {
+			await deleteCoupon(id)
+		} catch (error) {
+			console.error(error)
 		}
 	}
 
@@ -270,12 +269,16 @@ export default function CouponsClient({ initialCoupons }: CouponsClientProps) {
 													>
 														<Pencil className='w-3.5 h-3.5' />
 													</button>
-													<button
-														onClick={() => handleDelete(coupon._id)}
-														className='flex items-center justify-center w-8 h-8 rounded-xl border border-gray-200 text-gray-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 bg-white shadow-sm transition-colors cursor-pointer'
+													<ConfirmModal
+														title="Kuponni o'chirish"
+														description="Haqiqatan ham bu kuponni o'chirishni xohlaysizmi? Bu amalni ortga qaytarib bo'lmaydi."
+														confirmText="O'chirish"
+														onConfirm={() => handleDelete(coupon._id)}
 													>
-														<Trash2 className='w-3.5 h-3.5' />
-													</button>
+														<div className='flex items-center justify-center w-8 h-8 rounded-xl border border-gray-200 text-gray-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 bg-white shadow-sm transition-colors cursor-pointer'>
+															<Trash2 className='w-3.5 h-3.5' />
+														</div>
+													</ConfirmModal>
 												</div>
 											</td>
 										</tr>

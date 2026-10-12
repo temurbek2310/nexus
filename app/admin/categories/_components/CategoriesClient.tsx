@@ -1,5 +1,6 @@
 'use client'
 
+import ConfirmModal from '@/components/shared/confirm-modal'
 import { Badge } from '@/components/ui/badge'
 import { ICategory, deleteCategory } from '@/lib/actions/category.actions'
 import {
@@ -78,17 +79,15 @@ export default function CategoriesClient({
 		setIsSheetOpen(true)
 	}
 
-	const handleDelete = async (id: string, title: string) => {
-		if (confirm(`Rostdan ham "${title}" kategoriyasini o'chirasizmi?`)) {
-			setIsPending(true)
-			try {
-				await deleteCategory(id)
-			} catch (error) {
-				console.error(error)
-				alert("O'chirishda xatolik yuz berdi.")
-			} finally {
-				setIsPending(false)
-			}
+	const handleDelete = async (id: string) => {
+		setIsPending(true)
+		try {
+			await deleteCategory(id)
+		} catch (error) {
+			console.error(error)
+			alert("O'chirishda xatolik yuz berdi.")
+		} finally {
+			setIsPending(false)
 		}
 	}
 
@@ -264,12 +263,16 @@ export default function CategoriesClient({
 													>
 														<Pencil className='w-3.5 h-3.5' />
 													</button>
-													<button
-														onClick={() => handleDelete(cat._id, cat.title)}
-														className='flex items-center justify-center w-8 h-8 rounded-xl border border-gray-200 text-gray-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 bg-white shadow-sm transition-colors cursor-pointer'
+													<ConfirmModal
+														title="Kategoriyani o'/shirish"
+														description={`Rostdan ham "${cat.title}" kategoriyasini o'chirasizmi? Bu amalni ortga qaytarib bo'lmaydi.`}
+														confirmText="O'chirish"
+														onConfirm={() => handleDelete(cat._id)}
 													>
-														<Trash2 className='w-3.5 h-3.5' />
-													</button>
+														<div className='flex items-center justify-center w-8 h-8 rounded-xl border border-gray-200 text-gray-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 bg-white shadow-sm transition-colors cursor-pointer'>
+															<Trash2 className='w-3.5 h-3.5' />
+														</div>
+													</ConfirmModal>
 												</div>
 											</td>
 										</tr>

@@ -1,5 +1,6 @@
 'use client'
 
+import ConfirmModal from '@/components/shared/confirm-modal'
 import { Badge } from '@/components/ui/badge'
 import { ICategory } from '@/lib/actions/category.actions'
 import { IProduct, deleteProduct } from '@/lib/actions/product.actions'
@@ -105,17 +106,15 @@ export default function ProductsClient({
 		setIsSheetOpen(true)
 	}
 
-	const handleDelete = async (id: string, title: string) => {
-		if (confirm(`Rostdan ham "${title}" mahsulotini o'chirasizmi?`)) {
-			setIsPending(true)
-			try {
-				await deleteProduct(id)
-			} catch (error) {
-				console.error(error)
-				alert("O'chirishda xatolik yuz berdi.")
-			} finally {
-				setIsPending(false)
-			}
+	const handleDelete = async (id: string) => {
+		setIsPending(true)
+		try {
+			await deleteProduct(id)
+		} catch (error) {
+			console.error(error)
+			alert("O'chirishda xatolik yuz berdi.")
+		} finally {
+			setIsPending(false)
 		}
 	}
 
@@ -349,15 +348,19 @@ export default function ProductsClient({
 													>
 														<Pencil className='w-3.5 h-3.5' />
 													</button>
-													<button
-														onClick={() =>
-															handleDelete(product._id, product.title)
-														}
-														className='flex items-center justify-center w-8 h-8 rounded-xl border border-gray-200 text-gray-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 bg-white shadow-sm transition-colors cursor-pointer'
-														title='O`chirish'
+													<ConfirmModal
+														title="Mahsulotni o'chirish"
+														description={`Rostdan ham "${product.title}" mahsulotini o'chirasizmi? Bu amalni ortga qaytarib bo'lmaydi.`}
+														confirmText="O'chirish"
+														onConfirm={() => handleDelete(product._id)}
 													>
-														<Trash2 className='w-3.5 h-3.5' />
-													</button>
+														<div
+															className='flex items-center justify-center w-8 h-8 rounded-xl border border-gray-200 text-gray-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 bg-white shadow-sm transition-colors cursor-pointer'
+															title="O'chirish"
+														>
+															<Trash2 className='w-3.5 h-3.5' />
+														</div>
+													</ConfirmModal>
 												</div>
 											</td>
 										</tr>

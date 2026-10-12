@@ -67,7 +67,7 @@ export async function createPaymentIntent({
 		})
 
 		const paymentIntent = await stripe.paymentIntents.create({
-			amount: Math.round(total * 100),
+			amount: Math.round(total * 100), // <--- * 100 bo'lishi kerak
 			currency: 'usd',
 			metadata: {
 				orderId: newOrder._id.toString(),

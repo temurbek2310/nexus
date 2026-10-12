@@ -1,5 +1,6 @@
 'use client'
 
+import ConfirmModal from '@/components/shared/confirm-modal'
 import { Badge } from '@/components/ui/badge'
 import { IUser, toggleUserRole } from '@/lib/actions/user.actions'
 import {
@@ -60,13 +61,12 @@ export default function UsersClient({ initialData, query }: UsersClientProps) {
 
 	// ROLNI O'ZGARTIRISH
 	const handleToggleRole = async (id: string, currentRole: string) => {
-		if (
-			confirm(
-				`Rostdan ham bu foydalanuvchini ${currentRole === 'admin' ? 'User' : 'Admin'} qilmoqchimisiz?`,
-			)
-		) {
-			setIsPending(true)
+		setIsPending(true)
+		try {
 			await toggleUserRole(id, currentRole)
+		} catch (error) {
+			console.error("Rolni o'zgartirishda xatolik:", error)
+		} finally {
 			setIsPending(false)
 		}
 	}
@@ -214,12 +214,18 @@ export default function UsersClient({ initialData, query }: UsersClientProps) {
 
 											{/* Harakatlar (Role almashtirish) */}
 											<td className='py-4 px-6 text-right whitespace-nowrap'>
-												<button
-													onClick={() => handleToggleRole(user._id, user.role)}
-													className='inline-flex items-center justify-center h-8 px-3 rounded-lg border border-gray-200 text-[11px] font-bold text-gray-500 hover:text-black hover:border-black bg-white shadow-sm transition-all opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 cursor-pointer'
+												<ConfirmModal
+													title="Rolni o'zgartirish"
+													description={`Rostdan ham bu foydalanuvchini ${user.role === 'admin' ? 'Oddiy mijoz (User)' : 'Admin'} qilmoqchimisiz?`}
+													confirmText='Tasdiqlash'
+													onConfirm={() =>
+														handleToggleRole(user._id, user.role)
+													}
 												>
-													{isAdmin ? 'Mijoz qilish' : 'Admin qilish'}
-												</button>
+													<div className='inline-flex items-center justify-center h-8 px-3 rounded-lg border border-gray-200 text-[11px] font-bold text-gray-500 hover:text-black hover:border-black bg-white shadow-sm transition-all opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 cursor-pointer'>
+														{isAdmin ? 'Mijoz qilish' : 'Admin qilish'}
+													</div>
+												</ConfirmModal>
 											</td>
 										</tr>
 									)

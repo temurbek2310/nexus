@@ -1,5 +1,6 @@
 'use client'
 
+import ConfirmModal from '@/components/shared/confirm-modal'
 import {
 	deleteAddress,
 	setAsDefaultAddress,
@@ -64,8 +65,6 @@ export default function AddressesClient({
 	}
 
 	const handleDelete = async (id: string) => {
-		if (!confirm("Ushbu manzilni o'chirib tashlamoqchimisiz?")) return
-
 		setIsDeleting(id)
 		try {
 			await deleteAddress(id)
@@ -190,12 +189,16 @@ export default function AddressesClient({
 										<Pencil className='w-3.5 h-3.5' />
 									</button>
 
-									<button
-										onClick={() => handleDelete(address._id)}
-										className='w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors shadow-sm'
+									<ConfirmModal
+										title="Manzilni o'chirish"
+										description="Ushbu manzilni o'chirib tashlamoqchimisiz? Bu amalni ortga qaytarib bo'lmaydi."
+										confirmText="O'chirish"
+										onConfirm={() => handleDelete(address._id)}
 									>
-										<Trash2 className='w-3.5 h-3.5' />
-									</button>
+										<div className='w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors shadow-sm cursor-pointer'>
+											<Trash2 className='w-3.5 h-3.5' />
+										</div>
+									</ConfirmModal>
 								</div>
 							</div>
 

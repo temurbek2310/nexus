@@ -134,11 +134,14 @@ export default function CartPage() {
 									className='relative w-full sm:w-28 h-40 sm:h-28 bg-[#FAFAFA] rounded-2xl overflow-hidden flex items-center justify-center shrink-0 cursor-pointer'
 								>
 									<Image
-										src={item.image}
-										alt={item.name}
+										src={
+											typeof item.image === 'string' && item.image.trim() !== ''
+												? item.image
+												: '/placeholder.png'
+										}
+										alt={item.name || 'Mahsulot'}
 										fill
-										className='object-contain p-4 group-hover:scale-110 transition-transform duration-500'
-										sizes='128px'
+										className='object-cover'
 									/>
 								</Link>
 
