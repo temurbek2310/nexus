@@ -1,72 +1,37 @@
 'use client'
 
+import { useCartStore } from '@/store/useCartStore' // Yo'lni o'zingizga moslang
+import { useWishlistStore } from '@/store/useWishlistStore' // Yo'lni o'zingizga moslang
 import { ArrowRight, Heart, ShoppingCart, Trash2 } from 'lucide-react'
 import Link from 'next/link'
-import React from 'react'
-
-interface WishlistItem {
-	id: string
-	name: string
-	price: string
-	category: string
-	image: string
-	inStock: boolean
-}
-
-const MOCK_WISHLIST: WishlistItem[] = [
-	{
-		id: 'PROD-1',
-		name: 'Sony WH-1000XM5 Wireless Noise Cancelling Headphones',
-		price: '$299.00',
-		category: 'Elektronika',
-		image:
-			'https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=500&q=80',
-		inStock: true,
-	},
-	{
-		id: 'PROD-2',
-		name: 'MacBook Pro 14" M3 Max Chip',
-		price: '$1,999.00',
-		category: 'Noutbuklar',
-		image:
-			'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&q=80',
-		inStock: true,
-	},
-	{
-		id: 'PROD-3',
-		name: 'Apple Watch Series 9 GPS',
-		price: '$399.00',
-		category: 'Aqlli soatlar',
-		image:
-			'https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=500&q=80',
-		inStock: false,
-	},
-	{
-		id: 'PROD-4',
-		name: 'Keychron K2 Wireless Mechanical Keyboard',
-		price: '$89.00',
-		category: 'Aksessuarlar',
-		image:
-			'https://images.unsplash.com/photo-1595225476474-87563907a212?w=500&q=80',
-		inStock: true,
-	},
-]
+import { useEffect, useState } from 'react'
 
 export default function WishlistPage() {
-	// ASLIDA SIZNING KODINGIZ BUNDAY BO'LADI:
-	// const { wishlist, removeFromWishlist, addToCart } = useStore()
+	// Zustand hook'lari
+	const wishlistItems = useWishlistStore(state => state.items)
+	const removeItem = useWishlistStore(state => state.removeItem)
+	const clearWishlist = useWishlistStore(state => state.clearWishlist)
 
-	// Hozirgi vizual ko'rinish uchun vaqtinchalik local state:
-	const [wishlist, setWishlist] = React.useState(MOCK_WISHLIST)
+	const addToCart = useCartStore(state => state.addItem)
 
-	const handleRemove = (id: string) => {
-		// Sizning asl kodingiz: removeFromWishlist(id)
-		setWishlist(prev => prev.filter(item => item.id !== id))
-	}
+	// Hydration Error ning oldini olish uchun (Zustand persist ishlatganda shart)
+	const [isMounted, setIsMounted] = useState(false)
+	useEffect(() => {
+		setIsMounted(true)
+	}, [])
 
-	const handleAddToCart = (item: WishlistItem) => {
-		// Sizning asl kodingiz: addToCart(item)
-		console.log("Savatga qo'shildi:", item.name)
+	if (!isMounted) return null // Dastlabki render server bilan bir xil bo'lishi uchun
+
+	const handleAddToCart = (item: any) => {
+		// Mahsulotni savatga qo'shish
+		addToCart({
+			id: item.id,
+			name: item.name,
+			price: item.price,
+			brand: item.category,
+			image: item.image,
+			quantity: 1,
+		})
 	}
 
 	return (
@@ -82,13 +47,13 @@ export default function WishlistPage() {
 						qo'ying.
 					</p>
 				</div>
-				{wishlist.length > 0 && (
+				{wishlistItems.length > 0 && (
 					<div className='flex items-center gap-3'>
 						<span className='text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1.5 rounded-md'>
-							{wishlist.length} ta mahsulot
+							{wishlistItems.length} ta mahsulot
 						</span>
 						<button
-							onClick={() => setWishlist([])} // O'zingizni clearWishlist() ga almashtirasiz
+							onClick={clearWishlist}
 							className='text-sm font-medium text-red-600 hover:text-red-700 transition-colors'
 						>
 							Barchasini tozalash
@@ -98,29 +63,34 @@ export default function WishlistPage() {
 			</div>
 
 			{/* Mahsulotlar to'ri (Grid) yoki Bo'sh holat */}
-			{wishlist.length > 0 ? (
+			{wishlistItems.length > 0 ? (
 				<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
-					{wishlist.map(item => (
+					{wishlistItems.map(item => (
 						<div
 							key={item.id}
 							className='group flex flex-col rounded-xl border border-gray-200 bg-white shadow-sm transition-all hover:border-gray-300 hover:shadow-md overflow-hidden relative'
 						>
-							{/* O'chirish tugmasi (Absolute & Glassmorphism) */}
 							<button
-								onClick={() => handleRemove(item.id)}
+								onClick={() => removeItem(item.id)}
 								className='absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 backdrop-blur-md border border-gray-200/50 text-gray-500 transition-all hover:bg-red-50 hover:text-red-600 hover:border-red-100 shadow-sm opacity-0 group-hover:opacity-100 focus:opacity-100'
 								title="Ro'yxatdan o'chirish"
 							>
 								<Trash2 className='h-4 w-4' />
 							</button>
 
-							{/* Rasm qismi */}
-							<div className='relative aspect-square bg-gray-50 overflow-hidden border-b border-gray-100'>
+							{/* O'ZGARISH: Rasm endi /shop/[id] ga eltuvchi Link ichida */}
+							<Link
+								href={`/shop/${item.id}`}
+								className='relative aspect-square bg-gray-50 overflow-hidden border-b border-gray-100 block'
+							>
 								{/* eslint-disable-next-line @next/next/no-img-element */}
 								<img
-									src={item.image}
+									src={item.image || '/placeholder.png'}
 									alt={item.name}
 									className='h-full w-full object-cover transition-transform duration-500 group-hover:scale-105'
+									onError={e => {
+										;(e.target as HTMLImageElement).src = '/placeholder.png'
+									}}
 								/>
 								{!item.inStock && (
 									<div className='absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center'>
@@ -129,25 +99,26 @@ export default function WishlistPage() {
 										</span>
 									</div>
 								)}
-							</div>
+							</Link>
 
-							{/* Ma'lumot qismi */}
 							<div className='flex flex-col p-4 flex-1'>
 								<span className='text-xs font-medium text-gray-500 mb-1'>
 									{item.category}
 								</span>
-								<h3 className='font-medium text-gray-900 leading-snug line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors'>
-									{item.name}
-								</h3>
+								{/* O'ZGARISH: Nom qismi ham /shop/[id] ga yo'naltirildi */}
+								<Link href={`/shop/${item.id}`}>
+									<h3 className='font-medium text-gray-900 leading-snug line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors'>
+										{item.name}
+									</h3>
+								</Link>
 
 								<div className='mt-auto flex items-end justify-between pt-2'>
 									<span className='font-mono text-lg font-bold text-gray-900'>
-										{item.price}
+										${item.price}
 									</span>
 								</div>
 							</div>
 
-							{/* Pastki Harakat tugmasi (Footer Action) */}
 							<div className='p-4 pt-0'>
 								<button
 									onClick={() => handleAddToCart(item)}
@@ -162,7 +133,6 @@ export default function WishlistPage() {
 					))}
 				</div>
 			) : (
-				/* Vercel uslubidagi Empty State (Bo'sh holat) */
 				<div className='flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 py-24 text-center px-4'>
 					<div className='flex h-16 w-16 items-center justify-center rounded-full bg-white border border-gray-200 shadow-sm mb-4 relative'>
 						<Heart className='h-6 w-6 text-gray-300' />
@@ -178,7 +148,7 @@ export default function WishlistPage() {
 						Yoqtirgan mahsulotlaringizdagi yurakcha belgisini bosing.
 					</p>
 					<Link
-						href='/products'
+						href='/shop' // Buni ham /products dan /shop ga o'zgartirdim, logikaga mos tushishi uchun
 						className='mt-6 flex items-center gap-2 rounded-lg bg-white border border-gray-200 px-5 py-2.5 text-sm font-medium text-black transition-colors hover:bg-gray-50 hover:border-gray-300 shadow-sm'
 					>
 						Mahsulotlarni ko'rish

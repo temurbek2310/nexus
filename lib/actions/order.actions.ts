@@ -1,102 +1,22 @@
 'use server'
 
+import '@/lib/models/address.model'
 import Order from '@/lib/models/order.model'
 import Transaction from '@/lib/models/transaction.model'
 import User from '@/lib/models/user.model'
 import { connectToDatabase } from '@/lib/mongoose'
 import { auth } from '@clerk/nextjs/server'
+import { revalidatePath } from 'next/cache'
 import Stripe from 'stripe'
 
-// Stripe API versiyasi uchun xavfsiz yechim
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	apiVersion: '2026-08-26.dahlia' as any,
 })
 
-// Savatdagi mahsulotlar uchun maxsus interfeys yaratildi (any o'rniga)
-interface OrderCartItem {
-	id: string
-	name: string
-	brand: string
-	price: number
-	quantity: number
-	image: string
-}
-
-export async function createPaymentIntent({
-	addressId,
-	cartItems,
-	subtotal,
-	tax,
-	shipping,
-	total,
-	savings,
-}: {
-	addressId: string
-	cartItems: OrderCartItem[]
-	subtotal: number
-	tax: number
-	shipping: number
-	total: number
-	savings: number
-}) {
-	try {
-		await connectToDatabase()
-		const { userId } = await auth()
-		if (!userId) throw new Error("Autentifikatsiyadan o'tilmagan")
-
-		const user = await User.findOne({ clerkId: userId })
-		if (!user) throw new Error('Foydalanuvchi topilmadi')
-
-		const newOrder = await Order.create({
-			user: user._id,
-			address: addressId,
-			items: cartItems.map(item => ({
-				product: item.id,
-				name: item.name,
-				brand: item.brand,
-				price: item.price,
-				quantity: item.quantity,
-				image: item.image,
-			})),
-			subtotal,
-			tax,
-			shipping,
-			total,
-			savings,
-			paymentStatus: 'Kutilmoqda',
-			orderStatus: 'Yangi',
-		})
-
-		const paymentIntent = await stripe.paymentIntents.create({
-			amount: Math.round(total * 100),
-			currency: 'usd',
-			metadata: {
-				orderId: newOrder._id.toString(),
-				userId: user._id.toString(),
-			},
-			automatic_payment_methods: {
-				enabled: true,
-			},
-		})
-
-		newOrder.stripeSessionId = paymentIntent.id
-		await newOrder.save()
-
-		return {
-			clientSecret: paymentIntent.client_secret,
-			orderId: newOrder._id.toString(),
-		}
-	} catch (error: unknown) {
-		// error: any o'rniga error: unknown ishlatildi
-		console.error('PaymentIntent xatoligi:', error)
-		const msg =
-			error instanceof Error
-				? error.message
-				: "To'lovni boshlashda xatolik yuz berdi"
-		throw new Error(msg)
-	}
-}
+// ---------------------------------------------
+// FOYDALANUVCHILAR (USERS) UCHUN FUNKSIYALAR
+// ---------------------------------------------
 
 export async function completeOrder(orderId: string) {
 	try {
@@ -112,22 +32,17 @@ export async function completeOrder(orderId: string) {
 			let cardLast4 = ''
 
 			if (order.stripeSessionId) {
-				// Expand yordamida to'lov ma'lumotlarini to'liq olamiz
 				const paymentIntent = await stripe.paymentIntents.retrieve(
 					order.stripeSessionId,
-					{
-						expand: ['latest_charge'],
-					},
+					{ expand: ['latest_charge'] },
 				)
 
-				// TypeScript xatosi hal qilindi (charges xatosi olib tashlandi, faqat latest_charge qoldi)
 				const charge = paymentIntent.latest_charge as
 					| Stripe.Charge
 					| string
 					| null
 					| undefined
 
-				// Agar charge obyekt bo'lsa (string bo'lmasa), uning ichidan kvitansiyani olamiz
 				if (charge && typeof charge !== 'string') {
 					receiptUrl = charge.receipt_url || ''
 					cardBrand = charge.payment_method_details?.card?.brand || ''
@@ -136,7 +51,8 @@ export async function completeOrder(orderId: string) {
 			}
 
 			order.paymentStatus = "To'landi"
-			order.orderStatus = 'Tayyorlanmoqda'
+			// YANGI MANTIQ: To'lov o'tgandan so'ng status avtomatik "To'landi" ga o'tadi
+			order.orderStatus = "To'landi"
 			await order.save()
 
 			transaction = await Transaction.create({
@@ -157,10 +73,187 @@ export async function completeOrder(orderId: string) {
 			transaction: JSON.parse(JSON.stringify(transaction)),
 		}
 	} catch (error: unknown) {
-		// error: any o'rniga error: unknown ishlatildi
 		console.error('Buyurtmani yakunlashda xatolik:', error)
 		const msg =
 			error instanceof Error ? error.message : 'Buyurtmani tasdiqlashda xatolik'
 		throw new Error(msg)
+	}
+}
+
+export async function getUserOrders() {
+	try {
+		await connectToDatabase()
+		const { userId } = await auth()
+
+		if (!userId) throw new Error("Autentifikatsiyadan o'tilmagan")
+
+		const user = await User.findOne({ clerkId: userId })
+		if (!user) throw new Error('Foydalanuvchi topilmadi')
+
+		const orders = await Order.find({ user: user._id })
+			.sort({ createdAt: -1 })
+			.lean()
+
+		return JSON.parse(JSON.stringify(orders))
+	} catch (error) {
+		console.error('Buyurtmalarni yuklashda xatolik:', error)
+		return []
+	}
+}
+
+export async function getOrderById(orderId: string) {
+	try {
+		await connectToDatabase()
+		const { userId } = await auth()
+		if (!userId) throw new Error("Autentifikatsiyadan o'tilmagan")
+
+		const user = await User.findOne({ clerkId: userId })
+		if (!user) throw new Error('Foydalanuvchi topilmadi')
+
+		// Buyurtmani va unga ulangan manzilni (address) olib kelamiz
+		const order = await Order.findOne({ _id: orderId, user: user._id })
+			.populate('address')
+			.populate('user')
+			.lean()
+
+		if (!order) return null
+
+		// Buyurtmaga tegishli to'lov cheki va karta ma'lumotlarini olamiz
+		const transaction = await Transaction.findOne({ order: order._id }).lean()
+
+		return {
+			order: JSON.parse(JSON.stringify(order)),
+			transaction: transaction ? JSON.parse(JSON.stringify(transaction)) : null,
+		}
+	} catch (error) {
+		console.error('Buyurtma tafsilotlarini yuklashda xatolik:', error)
+		return null
+	}
+}
+
+// ---------------------------------------------
+// ADMINLAR (ADMIN DASHBOARD) UCHUN FUNKSIYALAR
+// ---------------------------------------------
+
+export async function getAllOrdersAdmin() {
+	try {
+		await connectToDatabase()
+
+		const orders = await Order.find()
+			.populate('user') // Mijoz ma'lumotlarini olish uchun
+			.sort({ createdAt: -1 })
+			.lean()
+
+		// Ma'lumotlarni Client formatiga moslash
+		const formattedOrders = orders.map((order: any) => {
+			// Eski statuslarni avtomatik o'giramiz
+			let status = order.orderStatus
+			if (status === 'Yangi') status = 'Qabul qilindi'
+			if (status === 'Tayyorlanmoqda') status = 'Qadoqlanmoqda'
+
+			return {
+				id: order._id.toString(),
+				customer:
+					order.user?.fullName || order.user?.firstName || "Noma'lum mijoz",
+				email:
+					order.user?.email ||
+					order.user?.primaryEmailAddress?.emailAddress ||
+					"Noma'lum email",
+				date: order.createdAt.toISOString(),
+				status: status,
+				paymentStatus:
+					order.paymentStatus === "To'landi"
+						? "To'langan"
+						: order.paymentStatus,
+				itemsCount: order.items.reduce(
+					(acc: number, item: any) => acc + item.quantity,
+					0,
+				),
+				amount: order.total,
+			}
+		})
+
+		// Statistikalarni hisoblash
+		const totalOrders = formattedOrders.length
+		const newOrders = formattedOrders.filter(
+			o => o.status === 'Qabul qilindi',
+		).length
+		const shippingOrders = formattedOrders.filter(
+			o => o.status === "Yo'lda",
+		).length
+		const totalRevenue = formattedOrders.reduce(
+			(acc, o) => acc + (o.paymentStatus === "To'langan" ? o.amount : 0),
+			0,
+		)
+
+		return {
+			success: true,
+			orders: JSON.parse(JSON.stringify(formattedOrders)),
+			stats: { totalOrders, newOrders, shippingOrders, totalRevenue },
+		}
+	} catch (error) {
+		console.error('Admin buyurtmalarni yuklashda xatolik:', error)
+		return {
+			success: false,
+			orders: [],
+			stats: {
+				totalOrders: 0,
+				newOrders: 0,
+				shippingOrders: 0,
+				totalRevenue: 0,
+			},
+		}
+	}
+}
+
+export async function updateOrderStatusAdmin(
+	orderId: string,
+	newStatus: string,
+) {
+	try {
+		await connectToDatabase()
+
+		await Order.findByIdAndUpdate(orderId, { orderStatus: newStatus })
+
+		// UI avtomat yangilanishi uchun keshlarni tozalaymiz
+		revalidatePath('/admin/orders')
+		revalidatePath(`/admin/orders/${orderId}`)
+
+		return { success: true }
+	} catch (error) {
+		console.error('Statusni yangilashda xatolik:', error)
+		return { success: false, error: "Holatni o'zgartirib bo'lmadi" }
+	}
+}
+
+export async function getOrderByIdAdmin(orderId: string) {
+	try {
+		await connectToDatabase()
+
+		// Admin har qanday buyurtmani ko'ra olishi kerak
+		const order = await Order.findById(orderId)
+			.populate('user') // Mijoz ma'lumotlarini olish
+			.populate('address') // Manzil ma'lumotlarini olish
+			.lean()
+
+		console.log('=== BAZADAN KELGAN MANZIL ===', order?.address)
+
+		if (!order) return null
+
+		const transaction = await Transaction.findOne({ order: order._id }).lean()
+
+		// Eski statuslarni avtomatik konvertatsiya qilish
+		let status = order.orderStatus
+		if (status === 'Yangi') status = 'Qabul qilindi'
+		if (status === 'Tayyorlanmoqda') status = 'Qadoqlanmoqda'
+		order.orderStatus = status
+
+		return {
+			order: JSON.parse(JSON.stringify(order)),
+			transaction: transaction ? JSON.parse(JSON.stringify(transaction)) : null,
+		}
+	} catch (error) {
+		console.error('Admin buyurtmani yuklashda xatolik:', error)
+		return null
 	}
 }

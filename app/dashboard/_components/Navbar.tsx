@@ -9,13 +9,21 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
 	const pathname = usePathname()
 
 	// Hozirgi sahifa nomini topish (Breadcrumb uchun)
-	// Hozirgi sahifa nomini topish (Breadcrumb uchun)
+	let pageName = 'Umumiy'
 	const currentRoute = dashboardRoutes.find(route => route.href === pathname)
-	let pageName = currentRoute ? currentRoute.name : 'Umumiy'
 
-	// Asosiy sahifada "Dashboard / Dashboard" bo'lib qolmasligi uchun uni o'zgartiramiz:
-	if (pathname === '/dashboard') {
-		pageName = 'Umumiy' // Yoki "Asosiy" deb yozishingiz ham mumkin
+	if (currentRoute) {
+		pageName = currentRoute.name
+	} else if (pathname === '/dashboard') {
+		pageName = 'Umumiy'
+	} else if (pathname.startsWith('/dashboard/orders/')) {
+		// Dinamik URL: /dashboard/orders/[id]
+		const orderId = pathname.split('/').pop()
+		if (orderId && orderId.length >= 6) {
+			pageName = `Buyurtma #ORD-${orderId.slice(-6).toUpperCase()}`
+		} else {
+			pageName = 'Buyurtma tafsilotlari'
+		}
 	}
 
 	return (
@@ -29,17 +37,21 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
 					<Menu className='h-5 w-5' />
 				</button>
 
-				{/* Vercel uslubidagi Breadcrumb (Dashboard / Page) */}
+				{/* Vercel uslubidagi Breadcrumb */}
 				<div className='hidden items-center space-x-2 font-montserrat text-sm font-medium sm:flex'>
 					<span className='text-gray-500'>Dashboard</span>
 					<Slash className='h-3 w-3 -rotate-12 text-gray-300' />
-					<span className='font-semibold text-black'>{pageName}</span>
+					{/* Sahifa nomi (Agar Orders Details bo'lsa ko'k rangga o'tadi) */}
+					<span
+						className={`font-semibold ${pathname.startsWith('/dashboard/orders/') ? 'text-black' : 'text-black'}`}
+					>
+						{pageName}
+					</span>
 				</div>
 			</div>
 
 			{/* O'ng qism: Qidiruv paneli va UserMenu */}
 			<div className='flex items-center space-x-4 sm:space-x-6'>
-				{/* Vercel uslubidagi Command Search Placeholder */}
 				<div className='hidden cursor-text items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 w-64 transition-colors hover:border-gray-300 md:flex'>
 					<Search className='mr-2 h-4 w-4 text-gray-400' />
 					<span className='flex-1 font-montserrat text-xs font-medium text-gray-400 text-left'>
@@ -58,7 +70,6 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
 				{/* Vertikal chiziq (Divider) */}
 				<div className='hidden h-6 w-px bg-gray-200 md:block'></div>
 
-				{/* Biz yozgan maxsus UserMenu */}
 				<UserMenu />
 			</div>
 		</header>

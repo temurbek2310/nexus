@@ -1,6 +1,6 @@
 'use client'
 
-import { createPaymentIntent } from '@/lib/actions/order.actions'
+import { createPaymentIntent } from '@/lib/actions/payments.actions'
 import { useCartStore } from '@/store/useCartStore'
 import { Elements } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'

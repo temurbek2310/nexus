@@ -2,6 +2,7 @@
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import WishlistButton from '@/components/ui/wishlist-button'
 import { cn } from '@/lib/utils'
 import {
 	ArrowLeft,
@@ -252,6 +253,12 @@ export default function ProductDetailsClient({
 									</>
 								)}
 							</Button>
+
+							<WishlistButton
+								product={product}
+								variant='full'
+								className='h-14 rounded-2xl'
+							/>
 						</div>
 
 						<Button

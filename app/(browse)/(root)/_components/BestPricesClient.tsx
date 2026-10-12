@@ -2,6 +2,7 @@
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import WishlistButton from '@/components/ui/wishlist-button'
 import { cn } from '@/lib/utils'
 import { useCartStore } from '@/store/useCartStore'
 import { ArrowRight, Check, ShoppingCart } from 'lucide-react'
@@ -170,6 +171,7 @@ export default function BestPricesClient({ products }: BestPricesClientProps) {
 										</div>
 									</div>
 
+									<div className="flex items-center gap-2">
 									<Button
 										onClick={e => handleAddToCart(e, product)}
 										size='icon'
@@ -187,6 +189,8 @@ export default function BestPricesClient({ products }: BestPricesClientProps) {
 											<ShoppingCart className='size-4' />
 										)}
 									</Button>
+									<WishlistButton product={product} />
+									</div>
 								</div>
 							</Link>
 						)

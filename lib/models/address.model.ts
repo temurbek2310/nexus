@@ -19,5 +19,4 @@ const AddressSchema = new Schema(
 )
 
 const Address = models.Address || model('Address', AddressSchema)
-
 export default Address

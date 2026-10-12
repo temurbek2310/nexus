@@ -2,6 +2,7 @@
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import WishlistButton from '@/components/ui/wishlist-button'
 import { cn } from '@/lib/utils'
 import { useCartStore } from '@/store/useCartStore'
 import { ArrowRight, Check, Flame, ShoppingCart, Sparkles } from 'lucide-react'
@@ -172,35 +173,38 @@ export default function DiscountProductsClient({
 										</div>
 									</div>
 
-									<Button
-										onClick={e => handleAddToCart(e, product)}
-										size='icon'
-										className={cn(
-											'shrink-0 rounded-full border border-gray-200 transition-all duration-300 shadow-sm overflow-hidden z-30 group/cartbtn',
-											index === 0 ? 'w-14 h-14' : 'w-12 h-12',
-											isAdded
-												? 'bg-green-500 text-white border-green-500 hover:bg-green-600'
-												: index === 0
-													? 'bg-black text-white hover:bg-gray-800'
-													: 'bg-white text-black hover:border-black hover:bg-black hover:text-white',
-										)}
-									>
-										{isAdded ? (
-											<Check
-												className={cn(
-													'animate-in zoom-in',
-													index === 0 ? 'w-6 h-6' : 'w-5 h-5',
-												)}
-											/>
-										) : (
-											<ShoppingCart
-												className={cn(
-													'transition-transform duration-300 group-hover/cartbtn:scale-110',
-													index === 0 ? 'w-5 h-5' : 'w-4 h-4',
-												)}
-											/>
-										)}
-									</Button>
+									<div className="flex items-center gap-2">
+										<Button
+											onClick={e => handleAddToCart(e, product)}
+											size='icon'
+											className={cn(
+												'shrink-0 rounded-full border border-gray-200 transition-all duration-300 shadow-sm overflow-hidden z-30 group/cartbtn',
+												index === 0 ? 'w-14 h-14' : 'w-12 h-12',
+												isAdded
+													? 'bg-green-500 text-white border-green-500 hover:bg-green-600'
+													: index === 0
+														? 'bg-black text-white hover:bg-gray-800'
+														: 'bg-white text-black hover:border-black hover:bg-black hover:text-white',
+											)}
+										>
+											{isAdded ? (
+												<Check
+													className={cn(
+														'animate-in zoom-in',
+														index === 0 ? 'w-6 h-6' : 'w-5 h-5',
+													)}
+												/>
+											) : (
+												<ShoppingCart
+													className={cn(
+														'transition-transform duration-300 group-hover/cartbtn:scale-110',
+														index === 0 ? 'w-5 h-5' : 'w-4 h-4',
+													)}
+												/>
+											)}
+										</Button>
+										<WishlistButton product={product} />
+									</div>
 								</div>
 							</Link>
 						)

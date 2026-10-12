@@ -2,6 +2,7 @@
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import WishlistButton from '@/components/ui/wishlist-button'
 import { cn } from '@/lib/utils'
 import { Box, Check, ShoppingCart } from 'lucide-react'
 import Image from 'next/image'
@@ -161,23 +162,26 @@ export default function ProductsClient({ products }: ProductsClientProps) {
 										</div>
 									</div>
 
-									<Button
-										onClick={e => handleAddToCart(e, product)}
-										size='icon'
-										variant='outline'
-										className={cn(
-											'size-10 shrink-0 rounded-full transition-all duration-300 shadow-sm z-30',
-											isAdded
-												? 'bg-green-500 text-white border-green-500 hover:bg-green-600 hover:text-white'
-												: 'border-gray-200 hover:border-black hover:bg-black hover:text-white group-hover:shadow-md',
-										)}
-									>
-										{isAdded ? (
-											<Check className='size-4 animate-in zoom-in' />
-										) : (
-											<ShoppingCart className='size-4' />
-										)}
-									</Button>
+									<div className="flex items-center gap-2">
+										<Button
+											onClick={e => handleAddToCart(e, product)}
+											size='icon'
+											variant='outline'
+											className={cn(
+												'size-10 shrink-0 rounded-full transition-all duration-300 shadow-sm z-30',
+												isAdded
+													? 'bg-green-500 text-white border-green-500 hover:bg-green-600 hover:text-white'
+													: 'border-gray-200 hover:border-black hover:bg-black hover:text-white group-hover:shadow-md',
+											)}
+										>
+											{isAdded ? (
+												<Check className='size-4 animate-in zoom-in' />
+											) : (
+												<ShoppingCart className='size-4' />
+											)}
+										</Button>
+										<WishlistButton product={product} />
+									</div>
 								</div>
 							</Link>
 						)

@@ -2,6 +2,7 @@
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import WishlistButton from '@/components/ui/wishlist-button'
 import { cn } from '@/lib/utils'
 import { useCartStore } from '@/store/useCartStore'
 import { ArrowRight, Check, Plus, Sparkles } from 'lucide-react'
@@ -156,7 +157,8 @@ export default function CoolestGadgetsClient({
 									)}
 								</div>
 
-								<div className='absolute bottom-6 right-6 z-30 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300'>
+								<div className='absolute bottom-6 right-6 z-30 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 flex items-center gap-2'>
+									<WishlistButton product={gadget} />
 									<Button
 										onClick={e => handleAddToCart(e, gadget)}
 										size='icon'

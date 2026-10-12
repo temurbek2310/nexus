@@ -7,6 +7,7 @@ import { useCartStore } from '@/store/useCartStore'
 import { Check, ShoppingCart } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import WishlistButton from '@/components/ui/wishlist-button'
 import { useState } from 'react'
 
 interface ProductCardProps {
@@ -95,23 +96,26 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 					</div>
 				</div>
 
-				<Button
-					onClick={handleAddToCart}
-					size='icon'
-					variant='outline'
-					className={cn(
-						'size-10 shrink-0 rounded-full transition-all shadow-sm group-hover:shadow-md z-30',
-						isAdded
-							? 'bg-green-500 text-white border-green-500 hover:bg-green-600'
-							: 'border-gray-200 hover:border-black hover:bg-black hover:text-white',
-					)}
-				>
-					{isAdded ? (
-						<Check className='size-4 animate-in zoom-in' />
-					) : (
-						<ShoppingCart className='size-4 transition-transform duration-300 group-hover:scale-110' />
-					)}
-				</Button>
+				<div className='flex items-center gap-2'>
+					<WishlistButton product={product} />
+					<Button
+						onClick={handleAddToCart}
+						size='icon'
+						variant='outline'
+						className={cn(
+							'size-10 shrink-0 rounded-full transition-all shadow-sm group-hover:shadow-md z-30',
+							isAdded
+								? 'bg-green-500 text-white border-green-500 hover:bg-green-600'
+								: 'border-gray-200 hover:border-black hover:bg-black hover:text-white',
+						)}
+					>
+						{isAdded ? (
+							<Check className='size-4 animate-in zoom-in' />
+						) : (
+							<ShoppingCart className='size-4 transition-transform duration-300 group-hover:scale-110' />
+						)}
+					</Button>
+				</div>
 			</div>
 		</Link>
 	)
